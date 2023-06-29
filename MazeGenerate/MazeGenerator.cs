@@ -367,16 +367,9 @@ namespace MazeGenerate
 
                 while (true)
                 {
-                    if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
-                    {
-                        randIndexSecond = rand.Next(list[randIndexFirst].Count);
-                        x = list[randIndexFirst][randIndexSecond].x;
-                        y = list[randIndexFirst][randIndexSecond].y;
-                        Clear(isBlock);
-                    }
-
                     int r = rand.Next(4);
                     if (isBlock[r]) continue;
+
                     if (r == 0) // 상향
                     {
                         p.Censor(x, y + 2);
@@ -424,6 +417,14 @@ namespace MazeGenerate
                             map[x - 2, y] = Stage.Room;
                             break;
                         }
+                    }
+
+                    if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
+                    {
+                        randIndexSecond = rand.Next(list[randIndexFirst].Count);
+                        x = list[randIndexFirst][randIndexSecond].x;
+                        y = list[randIndexFirst][randIndexSecond].y;
+                        Clear(isBlock);
                     }
                 }
                 list[randIndexFirst].AddRange(list[list.FindIndex(i => i.Contains(p))]);
