@@ -65,10 +65,6 @@ namespace MazeGenerate
             {
                 this.x = x; this.y = y;
             }
-            public void Censor(int x, int y, int r)
-            {
-                this.x = x; this.y = y; this.r = r;
-            }
         }
 
         // 첫번째 방법, 가지 치기(BinaryTree).
