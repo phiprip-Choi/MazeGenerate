@@ -60,7 +60,7 @@ namespace MazeGenerate
 
         private struct Point
         {
-            public int x, y, r;
+            public int x, y;
             public void Censor(int x, int y)
             {
                 this.x = x; this.y = y;
@@ -290,6 +290,7 @@ namespace MazeGenerate
             Point p = new Point();
             List<Point> list = new List<Point>();
             Dictionary<Point, int> frontier = new Dictionary<Point, int>();
+
             Random rand = new Random();
 
             int x = rand.Next(1, (xRange - 1) / 4) * 4 - 2; // 일반항 x = 4*n - 2, 그러므로 가로축 방의 최대항은 N = (X + 2)/4
@@ -516,11 +517,9 @@ namespace MazeGenerate
                         p.Censor(xPos, yPos);
                         if (!list.Contains(p))
                         {
-                            p.Censor(xPos + 4, yPos);
-                            if (list.Contains(p))
+                            if (list.Any(v => (v.x == p.x + 4) && (v.y == p.y)))
                             {
                                 isRemainRoom = true;
-                                p.Censor(xPos, yPos);
                                 list.Add(p);
                                 map[xPos + 2, yPos] = Stage.Room;
                                 map[xPos + 3, yPos] = Stage.Room;
@@ -528,11 +527,9 @@ namespace MazeGenerate
                                 yPos = yRange + 1;
                                 break;
                             }
-                            p.Censor(xPos - 4, yPos);
-                            if (list.Contains(p))
+                            else if (list.Any(v => (v.x == p.x - 4) && (v.y == p.y)))
                             {
                                 isRemainRoom = true;
-                                p.Censor(xPos, yPos);
                                 list.Add(p);
                                 map[xPos - 1, yPos] = Stage.Room;
                                 map[xPos - 2, yPos] = Stage.Room;
@@ -540,11 +537,9 @@ namespace MazeGenerate
                                 yPos = yRange + 1;
                                 break;
                             }
-                            p.Censor(xPos, yPos - 2);
-                            if (list.Contains(p))
+                            else if (list.Any(v => (v.x == p.x) && (v.y == p.y - 2)))
                             {
                                 isRemainRoom = true;
-                                p.Censor(xPos, yPos);
                                 list.Add(p);
                                 map[xPos, yPos - 1] = Stage.Room;
                                 map[xPos + 1, yPos - 1] = Stage.Room;
