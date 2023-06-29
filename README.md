@@ -12,4 +12,5 @@
 6. Kill-and-Hunt(색출과 축출)
 
 이 여섯 가지 알고리즘 모두 아래 주소에서 참고함을 알립니다. 
+
 https://www.jamisbuck.org/mazes/
