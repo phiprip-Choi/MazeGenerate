@@ -586,9 +586,6 @@ namespace MazeGenerate
             list.Clear();
         }
 
-        void Clear(bool[] isBlock)
-        {
-            for (int j = 0; j < isBlock.Length; ++j) isBlock[j] = false;
-        }
+        void Clear(bool[] isBlock){ for (int j = 0; j < isBlock.Length; ++j) isBlock[j] = false; }
     }
 }

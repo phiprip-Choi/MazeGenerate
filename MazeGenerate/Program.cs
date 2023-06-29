@@ -13,7 +13,6 @@ namespace MazeGenerate
             Map stage = new Map(50, 30);
             while (true) stage.Run();
         }
-
     }
 }
 
