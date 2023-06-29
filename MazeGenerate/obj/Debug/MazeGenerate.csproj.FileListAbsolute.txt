@@ -5,3 +5,11 @@ C:\Users\glom3\source\repos\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.csp
 C:\Users\glom3\source\repos\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.csproj.CoreCompileInputs.cache
 C:\Users\glom3\source\repos\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.exe
 C:\Users\glom3\source\repos\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.pdb
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\bin\Debug\MazeGenerate.exe.config
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\bin\Debug\MazeGenerate.exe
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\bin\Debug\MazeGenerate.pdb
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.csproj.AssemblyReference.cache
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.csproj.SuggestedBindingRedirects.cache
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.csproj.CoreCompileInputs.cache
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.exe
+C:\Users\glom3\Documents\Git\MazeGenerate\MazeGenerate\obj\Debug\MazeGenerate.pdb

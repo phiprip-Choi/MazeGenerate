@@ -293,75 +293,53 @@ namespace MazeGenerate
         {
             Point p = new Point();
             List<Point> list = new List<Point>();
-            List<Point> frontier = new List<Point>();
+            Dictionary<Point, int> frontier = new Dictionary<Point, int>();
             Random rand = new Random();
 
             int x = rand.Next(1, (xRange - 1) / 4) * 4 - 2; // 일반항 x = 4*n - 2, 그러므로 가로축 방의 최대항은 N = (X + 2)/4
             int y = rand.Next(1, yRange / 2) * 2 - 1; // 일반항 y = 2*n - 1, 그러므로 세로축 방의 최대항은 N = (Y + 1)/2
             p.Censor(x, y);
             list.Add(p);
-
             do
             {
-                p.Censor(x + 4, y, 1); // 우측
-                if (p.x <= xRange
-                    && list.All(L => L.x != p.x || L.y != p.y)
-                    && frontier.All(F => F.x != p.x || F.y != p.y)) frontier.Add(p);
+                p.Censor(x + 4, y); // 우측
+                if (p.x <= xRange && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 1);
 
-                p.Censor(x - 4, y, 3); // 좌측
-                if (p.x >= 0
-                    && list.All(L => L.x != p.x || L.y != p.y)
-                    && frontier.All(F => F.x != p.x || F.y != p.y)) frontier.Add(p);
+                p.Censor(x - 4, y); // 좌측
+                if (p.x >= 0 && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 3); 
 
-                p.Censor(x, y + 2, 0); // 상향
-                if (p.y <= yRange
-                    && list.All(L => L.x != p.x || L.y != p.y)
-                    && frontier.All(F => F.x != p.x || F.y != p.y)) frontier.Add(p);
+                p.Censor(x, y + 2); // 상향
+                if (p.y <= yRange && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 0); 
 
-                p.Censor(x, y - 2, 2); // 하향
-                if (p.y >= 0
-                    && list.All(L => L.x != p.x || L.y != p.y)
-                    && frontier.All(F => F.x != p.x || F.y != p.y)) frontier.Add(p);
+                p.Censor(x, y - 2); // 하향
+                if (p.y >= 0 && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 2); 
 
 
                 int randIndex = rand.Next(frontier.Count);
-                if (frontier[randIndex].r == 0)
+                x = frontier.ElementAt(randIndex).Key.x;
+                y = frontier.ElementAt(randIndex).Key.y;
+                if (frontier.ElementAt(randIndex).Value == 0)
                 {
-                    x = frontier[randIndex].x;
-                    y = frontier[randIndex].y;
                     map[x, y - 1] = Stage.Room;
                     map[x + 1, y - 1] = Stage.Room;
-                    list.Add(frontier[randIndex]);
-                    frontier.RemoveAt(randIndex);
                 }
-                else if (frontier[randIndex].r == 1)
+                else if (frontier.ElementAt(randIndex).Value == 1)
                 {
-                    x = frontier[randIndex].x;
-                    y = frontier[randIndex].y;
                     map[x - 1, y] = Stage.Room;
                     map[x - 2, y] = Stage.Room;
-                    list.Add(frontier[randIndex]);
-                    frontier.RemoveAt(randIndex);
                 }
-                else if (frontier[randIndex].r == 2)
+                else if (frontier.ElementAt(randIndex).Value == 2)
                 {
-                    x = frontier[randIndex].x;
-                    y = frontier[randIndex].y;
                     map[x, y + 1] = Stage.Room;
                     map[x + 1, y + 1] = Stage.Room;
-                    list.Add(frontier[randIndex]);
-                    frontier.RemoveAt(randIndex);
                 }
-                else if (frontier[randIndex].r == 3)
+                else if (frontier.ElementAt(randIndex).Value == 3)
                 {
-                    x = frontier[randIndex].x;
-                    y = frontier[randIndex].y;
                     map[x + 2, y] = Stage.Room;
                     map[x + 3, y] = Stage.Room;
-                    list.Add(frontier[randIndex]);
-                    frontier.RemoveAt(randIndex);
                 }
-
+                list.Add(frontier.ElementAt(randIndex).Key);
+                frontier.Remove(frontier.ElementAt(randIndex).Key);
             } while (frontier.Count > 0);
             list.Clear();
         }

@@ -65,7 +65,7 @@ namespace MazeGenerate
             //mazeGenerator.BinaryTree();
             //mazeGenerator.BackTracking();
             //mazeGenerator.Eller();
-            //mazeGenerator.Prim();
+            mazeGenerator.Prim();
             //mazeGenerator.Kruskal();
             //mazeGenerator.HuntAndKill();
 
