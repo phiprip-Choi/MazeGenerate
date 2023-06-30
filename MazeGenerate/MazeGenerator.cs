@@ -107,83 +107,85 @@ namespace MazeGenerate
             Point point = new Point();
             List<Point> prevRoom = new List<Point>();
             Random rand = new Random();
+            HashSet<Point> storge = new HashSet<Point>();
 
             bool[] isBlock = new bool[4];
-            int xTrack = xRange - 3, yTrack = yRange - 1, r, i = 0; // 난도 설정, 쉬움(2,1) 어려움(xRange - 3, yRange - 1)
+            int xTrack = xRange - 3, yTrack = yRange - 1;
+            // 난도 설정, 쉬움(2,1) 어려움(xRange - 3, yRange - 1),
+            // 난도 무작위, (rand.Next(1, (xRange - 1) / 4) * 4 - 2, rand.Next(1, yRange / 2) * 2 - 1)
+
             point.Censor(xTrack, yTrack);
             prevRoom.Add(point);
-
             while (true)
             {
-                if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
-                {
-                    i--;
-                    if (i == 0) break;
-                    xTrack = prevRoom[i].x;
-                    yTrack = prevRoom[i].y;
-                    Clear(isBlock);
-                }
-
-                r = rand.Next(4);
+                int r = rand.Next(4);
                 if (isBlock[r]) continue; //막힌 방향인지 미리 확인하는 조건
                 if (r == 0) // 우
                 {
                     point.Censor(xTrack + 4, yTrack);
-                    if (point.x >= xRange || prevRoom.Contains(point)) isBlock[r] = true;
+                    if (point.x >= xRange || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
                     else
                     {
                         Clear(isBlock);
                         map[xTrack + 2, yTrack] = Stage.Room;
                         map[xTrack + 3, yTrack] = Stage.Room;
-                        xTrack += 4;
                         prevRoom.Add(point);
-                        i = prevRoom.Count - 1;
+                        xTrack += 4;
                     }
                 }
                 else if (r == 1) // 상
                 {
                     point.Censor(xTrack, yTrack + 2);
-                    if (point.y >= yRange || prevRoom.Contains(point)) isBlock[r] = true;
+                    if (point.y >= yRange || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
                     else
                     {
                         Clear(isBlock);
                         map[xTrack, yTrack + 1] = Stage.Room;
                         map[xTrack + 1, yTrack + 1] = Stage.Room;
-                        yTrack += 2;
                         prevRoom.Add(point);
-                        i = prevRoom.Count - 1;
+                        yTrack += 2;
                     }
                 }
                 else if (r == 2) // 좌
                 {
                     point.Censor(xTrack - 4, yTrack);
-                    if (point.x <= 0 || prevRoom.Contains(point)) isBlock[r] = true;
+                    if (point.x <= 0 || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
                     else
                     {
                         Clear(isBlock);
                         map[xTrack - 1, yTrack] = Stage.Room;
                         map[xTrack - 2, yTrack] = Stage.Room;
-                        xTrack -= 4;
                         prevRoom.Add(point);
-                        i = prevRoom.Count - 1;
+                        xTrack -= 4;
                     }
                 }
                 else if (r == 3) // 하
                 {
                     point.Censor(xTrack, yTrack - 2);
-                    if (point.y <= 0 || prevRoom.Contains(point)) isBlock[r] = true;
+                    if (point.y <= 0 || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
                     else
                     {
                         Clear(isBlock);
                         map[xTrack, yTrack - 1] = Stage.Room;
                         map[xTrack + 1, yTrack - 1] = Stage.Room;
-                        yTrack -= 2;
                         prevRoom.Add(point);
-                        i = prevRoom.Count - 1;
+                        yTrack -= 2;
                     }
                 }
-            }
+
+                if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
+                {
+                    storge.Add(prevRoom[prevRoom.Count - 1]);
+                    prevRoom.RemoveAt(prevRoom.Count - 1);
+                    if (prevRoom.Count == 1) break;
+
+                    xTrack = prevRoom[prevRoom.Count - 1].x;
+                    yTrack = prevRoom[prevRoom.Count - 1].y;
+                    Clear(isBlock);
+                }
+            } 
             prevRoom.Clear();
+            storge.Clear();
         }
 
         // 세번째 방법, 무작위 획정(Eller's).
@@ -269,7 +271,7 @@ namespace MazeGenerate
 
             //막 행 정리, 한 구역으로 통일
             point.Censor(2, yRange - 1);
-            int r = list.FindIndex(u => u.Contains(point));
+            int r = list.FindIndex(i => i.Contains(point));
             for (int x = 2; x < xRange - 3; x += 4)
             {
                 point.Censor(x + 4, yRange - 1);
@@ -290,7 +292,6 @@ namespace MazeGenerate
             Point p = new Point();
             List<Point> list = new List<Point>();
             Dictionary<Point, int> frontier = new Dictionary<Point, int>();
-
             Random rand = new Random();
 
             int x = rand.Next(1, (xRange - 1) / 4) * 4 - 2; // 일반항 x = 4*n - 2, 그러므로 가로축 방의 최대항은 N = (X + 2)/4
