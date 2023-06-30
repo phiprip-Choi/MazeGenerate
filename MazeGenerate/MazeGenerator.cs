@@ -453,7 +453,7 @@ namespace MazeGenerate
             {
                 bool isRemainRoom = false;
                 bool[] isBlock = new bool[4];
-                while (true)
+                while (!isBlock[0] || !isBlock[1] || !isBlock[2] || !isBlock[3])
                 {
                     int r = rand.Next(4);
                     if (isBlock[r]) continue; // 막힌 방향인지 미리 확인하는 조건
@@ -509,8 +509,6 @@ namespace MazeGenerate
                             list.Add(p);
                         }
                     }
-
-                    if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3]) break;
                 }
 
                 visited.UnionWith(list);
