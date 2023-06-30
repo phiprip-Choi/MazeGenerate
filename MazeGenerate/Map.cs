@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -61,13 +62,18 @@ namespace MazeGenerate
         {
             isClear = false;
             Console.Clear();
+            Console.SetWindowSize(width, height);
+            Stopwatch stopwatch = new Stopwatch();
             MazeGenerator mazeGenerator = new MazeGenerator(map);
+
+            stopwatch.Start();
             //mazeGenerator.BinaryTree();
             //mazeGenerator.BackTracking();
             //mazeGenerator.Eller();
             //mazeGenerator.Prim();
             //mazeGenerator.Kruskal();
             //mazeGenerator.HuntAndKill();
+            stopwatch.Stop();
 
             for (int i = 0; i < width - 2; i+=2)
             {
@@ -87,6 +93,8 @@ namespace MazeGenerate
                     }
                 }
             }
+            Console.SetCursorPosition(2, map.GetLength(1));
+            Console.WriteLine(stopwatch.ElapsedMilliseconds.ToString() + " ms");
         }
         public void Run()
         {

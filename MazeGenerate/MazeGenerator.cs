@@ -118,12 +118,23 @@ namespace MazeGenerate
             prevRoom.Add(point);
             while (true)
             {
+                if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
+                {
+                    storge.Add(prevRoom[prevRoom.Count - 1]);
+                    prevRoom.RemoveAt(prevRoom.Count - 1);
+                    if (prevRoom.Count == 1) break;
+
+                    xTrack = prevRoom[prevRoom.Count - 1].x;
+                    yTrack = prevRoom[prevRoom.Count - 1].y;
+                    Clear(isBlock);
+                }
+
                 int r = rand.Next(4);
                 if (isBlock[r]) continue; //막힌 방향인지 미리 확인하는 조건
                 if (r == 0) // 우
                 {
                     point.Censor(xTrack + 4, yTrack);
-                    if (point.x >= xRange || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
+                    if (point.x >= xRange || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
                     else
                     {
                         Clear(isBlock);
@@ -136,7 +147,7 @@ namespace MazeGenerate
                 else if (r == 1) // 상
                 {
                     point.Censor(xTrack, yTrack + 2);
-                    if (point.y >= yRange || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
+                    if (point.y >= yRange || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
                     else
                     {
                         Clear(isBlock);
@@ -149,7 +160,7 @@ namespace MazeGenerate
                 else if (r == 2) // 좌
                 {
                     point.Censor(xTrack - 4, yTrack);
-                    if (point.x <= 0 || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
+                    if (point.x <= 0 || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
                     else
                     {
                         Clear(isBlock);
@@ -162,7 +173,7 @@ namespace MazeGenerate
                 else if (r == 3) // 하
                 {
                     point.Censor(xTrack, yTrack - 2);
-                    if (point.y <= 0 || prevRoom.Contains(point) || storge.Contains(point)) isBlock[r] = true;
+                    if (point.y <= 0 || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
                     else
                     {
                         Clear(isBlock);
@@ -171,17 +182,6 @@ namespace MazeGenerate
                         prevRoom.Add(point);
                         yTrack -= 2;
                     }
-                }
-
-                if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
-                {
-                    storge.Add(prevRoom[prevRoom.Count - 1]);
-                    prevRoom.RemoveAt(prevRoom.Count - 1);
-                    if (prevRoom.Count == 1) break;
-
-                    xTrack = prevRoom[prevRoom.Count - 1].x;
-                    yTrack = prevRoom[prevRoom.Count - 1].y;
-                    Clear(isBlock);
                 }
             } 
             prevRoom.Clear();
@@ -247,7 +247,7 @@ namespace MazeGenerate
                         point.Censor(x, y - 1);
                         int presentIndex = list.FindIndex(i => i.Contains(point));
 
-                        if (rand.Next(15) == 1) // 난도 조절, 숫자(자연수)가 낮을 수록 난도가 높아짐.
+                        if (rand.Next(20) == 1) // 난도 조절, 숫자(자연수)가 낮을 수록 난도가 높아짐.
                         {
                             unblockCount++;
                             map[x, y] = Stage.Room;
@@ -440,6 +440,7 @@ namespace MazeGenerate
         {
             Point p = new Point();
             List<Point> list = new List<Point>();
+            HashSet<Point> visited = new HashSet<Point>();
             Random rand = new Random();
 
             bool isEnd = false;
@@ -459,7 +460,7 @@ namespace MazeGenerate
                     if (r == 0) // 우
                     {
                         p.Censor(x + 4, y);
-                        if (p.x >= xRange || list.Contains(p)) isBlock[r] = true;
+                        if (p.x >= xRange || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
                         else
                         {
                             Clear(isBlock);
@@ -472,7 +473,7 @@ namespace MazeGenerate
                     else if (r == 1) // 상
                     {
                         p.Censor(x, y + 2);
-                        if (p.y >= yRange || list.Contains(p)) isBlock[r] = true;
+                        if (p.y >= yRange || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
                         else
                         {
                             Clear(isBlock);
@@ -485,7 +486,7 @@ namespace MazeGenerate
                     else if (r == 2) // 좌
                     {
                         p.Censor(x - 4, y);
-                        if (p.x <= 0 || list.Contains(p)) isBlock[r] = true;
+                        if (p.x <= 0 || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
                         else
                         {
                             Clear(isBlock);
@@ -498,7 +499,7 @@ namespace MazeGenerate
                     else if (r == 3) // 하
                     {
                         p.Censor(x, y - 2);
-                        if (p.y <= 0 || list.Contains(p)) isBlock[r] = true;
+                        if (p.y <= 0 || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
                         else
                         {
                             Clear(isBlock);
@@ -512,14 +513,16 @@ namespace MazeGenerate
                     if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3]) break;
                 }
 
+                visited.UnionWith(list);
+                list.Clear();
                 for (int yPos = 1; yPos < yRange; yPos += 2) // 포함되지 않은 방을 색출하여 주변 벽을 축출하기
                 {
                     for (int xPos = 2; xPos <= xRange - 3; xPos += 4)
                     {
                         p.Censor(xPos, yPos);
-                        if (!list.Contains(p))
+                        if (!visited.Contains(p))
                         {
-                            if (list.Any(v => (v.x == p.x + 4) && (v.y == p.y)))
+                            if (visited.Any(v => (v.x == p.x + 4) && (v.y == p.y)))
                             {
                                 isRemainRoom = true;
                                 list.Add(p);
@@ -529,7 +532,7 @@ namespace MazeGenerate
                                 yPos = yRange + 1;
                                 break;
                             }
-                            else if (list.Any(v => (v.x == p.x - 4) && (v.y == p.y)))
+                            else if (visited.Any(v => (v.x == p.x - 4) && (v.y == p.y)))
                             {
                                 isRemainRoom = true;
                                 list.Add(p);
@@ -539,7 +542,7 @@ namespace MazeGenerate
                                 yPos = yRange + 1;
                                 break;
                             }
-                            else if (list.Any(v => (v.x == p.x) && (v.y == p.y - 2)))
+                            else if (visited.Any(v => (v.x == p.x) && (v.y == p.y - 2)))
                             {
                                 isRemainRoom = true;
                                 list.Add(p);
@@ -554,7 +557,7 @@ namespace MazeGenerate
                 }
                 if (!isRemainRoom) isEnd = true;
             }
-            list.Clear();
+            visited.Clear();
         }
 
         void Clear(bool[] isBlock){ for (int j = 0; j < isBlock.Length; ++j) isBlock[j] = false; }
