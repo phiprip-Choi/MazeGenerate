@@ -12,7 +12,7 @@ namespace MazeGenerate
     class MazeGenerator
     {
         Stage[,] map;
-        private int xRange, yRange;
+        private readonly int xRange, yRange;
         public MazeGenerator(Stage[,] map)
         {
             this.map = map;
