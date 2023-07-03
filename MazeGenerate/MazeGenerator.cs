@@ -44,7 +44,7 @@ namespace MazeGenerate
                 {
                     map[0, i] = Stage.Wall;
                     map[1, i] = Stage.Wall;
-                    if (i > 0 && i % 2 == 0) for (int j = 2; j < xRange; j++)  map[j, i] = Stage.Wall;
+                    if (i > 0 && i % 2 == 0) for (int j = 2; j < xRange; j++) map[j, i] = Stage.Wall;
                 }
             });
             Horizontal.Start();
@@ -101,34 +101,30 @@ namespace MazeGenerate
 
         }
 
+        Point point = new Point();
+        List<Point> prevRoom = new List<Point>();
+        HashSet<Point> storge = new HashSet<Point>();
         // 두번째 방법, 원점회귀 추적(Back-Tracking).
         public void BackTracking()
         {
-            Point point = new Point();
-            List<Point> prevRoom = new List<Point>();
             Random rand = new Random();
-            HashSet<Point> storge = new HashSet<Point>();
-
+            int xTrack, yTrack;
             bool[] isBlock = new bool[4];
-            int xTrack = xRange - 3, yTrack = yRange - 1;
             // 난도 설정, 쉬움(2,1) 어려움(xRange - 3, yRange - 1),
             // 난도 무작위, (rand.Next(1, (xRange - 1) / 4) * 4 - 2, rand.Next(1, yRange / 2) * 2 - 1)
 
+            if (prevRoom.Count < 1) 
+            { 
+                xTrack = xRange - 3; 
+                yTrack = yRange - 1; 
+                point.Censor(xTrack, yTrack);
+                prevRoom.Add(point);
+            }
+            else { xTrack = prevRoom[prevRoom.Count - 1].x; yTrack = prevRoom[prevRoom.Count - 1].y; }            
             point.Censor(xTrack, yTrack);
-            prevRoom.Add(point);
-            while (true)
+
+            while (!IsAllTrue(isBlock))
             {
-                if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
-                {
-                    storge.Add(prevRoom[prevRoom.Count - 1]);
-                    prevRoom.RemoveAt(prevRoom.Count - 1);
-                    if (prevRoom.Count == 1) break;
-
-                    xTrack = prevRoom[prevRoom.Count - 1].x;
-                    yTrack = prevRoom[prevRoom.Count - 1].y;
-                    Clear(isBlock);
-                }
-
                 int r = rand.Next(4);
                 if (isBlock[r]) continue; //막힌 방향인지 미리 확인하는 조건
                 if (r == 0) // 우
@@ -183,7 +179,10 @@ namespace MazeGenerate
                         yTrack -= 2;
                     }
                 }
-            } 
+            }
+            storge.Add(prevRoom[prevRoom.Count - 1]);
+            prevRoom.RemoveAt(prevRoom.Count - 1);
+            if (prevRoom.Count > 1) BackTracking();
             prevRoom.Clear();
             storge.Clear();
         }
@@ -359,7 +358,7 @@ namespace MazeGenerate
                 }
             }
 
-            while (list.Count > 1) // 리스트가 하나만 남는 즉시 미로 생성 완료
+            while (list.Count > 1) // 리스트가 하나만 남는 즉시 미로 제작 완료
             {
                 //상위 리스트와 하위 리스트의 모든 항 중 하나를 무작위로 설정
                 int randIndexFirst = rand.Next(list.Count), randIndexSecond = rand.Next(list[randIndexFirst].Count);
@@ -420,7 +419,7 @@ namespace MazeGenerate
                         }
                     }
 
-                    if (isBlock[0] && isBlock[1] && isBlock[2] && isBlock[3])
+                    if (IsAllTrue(isBlock))
                     {
                         randIndexSecond = rand.Next(list[randIndexFirst].Count);
                         x = list[randIndexFirst][randIndexSecond].x;
@@ -453,7 +452,7 @@ namespace MazeGenerate
             {
                 bool isRemainRoom = false;
                 bool[] isBlock = new bool[4];
-                while (!isBlock[0] || !isBlock[1] || !isBlock[2] || !isBlock[3])
+                while (!IsAllTrue(isBlock))
                 {
                     int r = rand.Next(4);
                     if (isBlock[r]) continue; // 막힌 방향인지 미리 확인하는 조건
@@ -513,39 +512,45 @@ namespace MazeGenerate
 
                 visited.UnionWith(list);
                 list.Clear();
-                for (int yPos = 1; yPos < yRange; yPos += 2) // 포함되지 않은 방을 색출하여 주변 벽을 축출하기
+                for (int yPos = 1; yPos < yRange; yPos += 2) // 포함되지 않은 방을 색출하여 주변 벽을 무작위 축출하기
                 {
                     for (int xPos = 2; xPos <= xRange - 3; xPos += 4)
                     {
                         p.Censor(xPos, yPos);
                         if (!visited.Contains(p))
                         {
-                            if (visited.Any(v => (v.x == p.x + 4) && (v.y == p.y)))
+                            List<byte> openWay = new List<byte>();
+                            if (visited.Any(v => (v.x == p.x + 4) && (v.y == p.y))) openWay.Add(0);
+                            if (visited.Any(v => (v.x == p.x - 4) && (v.y == p.y))) openWay.Add(2);
+                            if (visited.Any(v => (v.x == p.x) && (v.y == p.y + 2))) openWay.Add(1);
+                            if (visited.Any(v => (v.x == p.x) && (v.y == p.y - 2))) openWay.Add(3);
+
+
+                            if (openWay.Count > 0)
                             {
+                                byte dir = openWay[rand.Next(openWay.Count)];
+                                if (dir == 0)
+                                {
+                                    map[xPos + 2, yPos] = Stage.Room;
+                                    map[xPos + 3, yPos] = Stage.Room;
+                                }
+                                else if (dir == 1) 
+                                {
+                                    map[xPos, yPos + 1] = Stage.Room;
+                                    map[xPos + 1, yPos + 1] = Stage.Room;
+                                }
+                                else if (dir == 2) 
+                                {
+                                    map[xPos - 1, yPos] = Stage.Room;
+                                    map[xPos - 2, yPos] = Stage.Room;
+                                }
+                                else if (dir == 3) 
+                                {
+                                    map[xPos, yPos - 1] = Stage.Room;
+                                    map[xPos + 1, yPos - 1] = Stage.Room;
+                                }
                                 isRemainRoom = true;
                                 list.Add(p);
-                                map[xPos + 2, yPos] = Stage.Room;
-                                map[xPos + 3, yPos] = Stage.Room;
-                                x = xPos; y = yPos;
-                                yPos = yRange + 1;
-                                break;
-                            }
-                            else if (visited.Any(v => (v.x == p.x - 4) && (v.y == p.y)))
-                            {
-                                isRemainRoom = true;
-                                list.Add(p);
-                                map[xPos - 1, yPos] = Stage.Room;
-                                map[xPos - 2, yPos] = Stage.Room;
-                                x = xPos; y = yPos;
-                                yPos = yRange + 1;
-                                break;
-                            }
-                            else if (visited.Any(v => (v.x == p.x) && (v.y == p.y - 2)))
-                            {
-                                isRemainRoom = true;
-                                list.Add(p);
-                                map[xPos, yPos - 1] = Stage.Room;
-                                map[xPos + 1, yPos - 1] = Stage.Room;
                                 x = xPos; y = yPos;
                                 yPos = yRange + 1;
                                 break;
@@ -559,5 +564,6 @@ namespace MazeGenerate
         }
 
         void Clear(bool[] isBlock){ for (int j = 0; j < isBlock.Length; ++j) isBlock[j] = false; }
+        bool IsAllTrue(bool[] isBlock) { for (int j = 0; j < isBlock.Length; ++j) if (!isBlock[j]) return false; return true; }
     }
 }
