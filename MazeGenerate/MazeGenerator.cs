@@ -49,8 +49,7 @@ namespace MazeGenerate
             });
             Horizontal.Start();
             Vertical.Start();
-            Horizontal.Wait();
-            Vertical.Wait();
+            Task.WaitAll(Horizontal, Vertical);
 
             map[2, 0] = Stage.Start;
             map[3, 0] = Stage.Start;
@@ -101,12 +100,12 @@ namespace MazeGenerate
 
         }
 
-        Point point = new Point();
         List<Point> prevRoom = new List<Point>();
         HashSet<Point> storge = new HashSet<Point>();
         // 두번째 방법, 원점회귀 추적(Back-Tracking).
         public void BackTracking()
         {
+            Point point = new Point();
             Random rand = new Random();
             int xTrack, yTrack;
             bool[] isBlock = new bool[4];
@@ -202,7 +201,7 @@ namespace MazeGenerate
                     for (int x = 2; x < xRange; x += 4)
                     {
                         point.Censor(x, y);
-                        if (!list.Any(p => p.Contains(point))) // 획정된 구역이 아닐 경우 새로 할당하기
+                        if (!list.Exists(p => p.Contains(point))) // 획정된 구역이 아닐 경우 새로 할당하기
                         {
                             list.Add(new HashSet<Point>());
                             list[list.Count - 1].Add(point);
@@ -218,18 +217,16 @@ namespace MazeGenerate
                         point.Censor(x + 4, y);
                         if (rand.Next(5) > 1 && !list[presentIndex].Contains(point))
                         {
+                            map[x + 2, y] = Stage.Room;
+                            map[x + 3, y] = Stage.Room;
                             int nextIndex = list.FindIndex(s => s.Contains(point));
                             if (rand.Next(2) == 1)
                             {
-                                map[x + 2, y] = Stage.Room;
-                                map[x + 3, y] = Stage.Room;
                                 list[presentIndex].UnionWith(list[nextIndex]);
                                 list.RemoveAt(nextIndex);
                             }
                             else
                             {
-                                map[x + 2, y] = Stage.Room;
-                                map[x + 3, y] = Stage.Room;
                                 list[nextIndex].UnionWith(list[presentIndex]);
                                 list.RemoveAt(presentIndex);
                             }
@@ -350,7 +347,7 @@ namespace MazeGenerate
 
             for (int y = 1; y < yRange; y += 2) // 미로의 놓인 모든 방을 리스트에 할당
             {
-                for (int x = 2; x <= xRange - 3; x += 4)
+                for (int x = 2; x < xRange; x += 4)
                 {
                     p.Censor(x, y);
                     list.Add(new List<Point>());
