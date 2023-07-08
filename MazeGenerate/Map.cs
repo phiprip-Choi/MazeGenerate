@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace MazeGenerate
 {
@@ -41,8 +42,8 @@ namespace MazeGenerate
 
         public void Print()
         {
-            P.Input();
-            //astar.Tracking(P);
+            //P.Input();
+            astar.Tracking(P);
             if (P.y < 0 || P.y >= height) P.y = yPos;
             else if (map[P.x, P.y] == Stage.Wall)
             {
@@ -70,7 +71,7 @@ namespace MazeGenerate
 
             stopwatch.Start();
             //mazeGenerator.BinaryTree();
-            //mazeGenerator.BackTracking();
+            mazeGenerator.BackTracking();
             //mazeGenerator.Eller();
             //mazeGenerator.Prim();
             //mazeGenerator.Kruskal();
@@ -79,6 +80,8 @@ namespace MazeGenerate
 
             astar = new Astar(map);
             astar.FindingPath();
+
+
             for (int i = 0; i < width - 2; i+=2)
             {
                 for (int j = 0; j < height - 1; j++)

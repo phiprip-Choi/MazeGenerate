@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Astar.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="MazeGenerator.cs" />
     <Compile Include="Player.cs" />

@@ -17,8 +17,8 @@ namespace MazeGenerate
         NodePosition node = new NodePosition(), lastNode = new NodePosition();
 
         List<NodePosition> nodePath = new List<NodePosition>();
+        HashSet<NodePosition> closeList = new HashSet<NodePosition>();
         Dictionary<NodePosition, int> openList = new Dictionary<NodePosition, int>();
-        Dictionary<NodePosition, int> closeList = new Dictionary<NodePosition, int>();
         Dictionary<NodePosition, NodePosition> root = new Dictionary<NodePosition, NodePosition>();
 
 
@@ -66,15 +66,17 @@ namespace MazeGenerate
 
                 for (int ySel = node.y - 1; ySel < node.y + 2; ySel++)
                 {
-                    for (int xSel = node.x - 1; xSel < node.x + 3; xSel++)
+                    for (int xSel = node.x - 2; xSel < node.x + 3; xSel++)
                     {
                         NodePosition currentNode = new NodePosition();
                         currentNode.Censor(xSel, ySel);
-                        if ((node.x == xSel && node.y == ySel) || //현재 구역 제외
+                        if ((node.x == xSel && node.y == ySel) || //현재 위치한 구역 제외
                             ySel < 0 || ySel > map.GetLength(1) - 2 || // 범위 외 제외
-                            xSel < 0 || xSel > map.GetLength(0) - 3 ||
-                            closeList.ContainsKey(currentNode) || // 이미 등록된 구역 제외
-                            map[xSel, ySel] == Stage.Wall) continue; // 벽이 위치한 구역 제외
+                            xSel < 0 || xSel > map.GetLength(0) - 3 || // 상동
+                            closeList.Contains(currentNode) || // 이미 등록된 구역 제외
+                            map[xSel, ySel] == Stage.Wall || //벽이 위치한 구역 제외
+                            (ySel == node.y + 1 && xSel > node.x) || // 검사 구역 제한
+                            (ySel == node.y + 1 && xSel < node.x)) continue; // 상동
   
                             if (openList.ContainsKey(currentNode) && openList[currentNode] < FCost(node, currentNode)) 
                                 continue;
@@ -96,7 +98,7 @@ namespace MazeGenerate
                         
                     }
                 }
-                closeList.Add(node, openList[node]);
+                closeList.Add(node);
                 openList.Remove(node);
             }
         }
@@ -114,19 +116,28 @@ namespace MazeGenerate
 
         public void Tracking(Player p)
         {
-            node.Censor(startX, startY);
-            while (true)
+            try
             {
-                nodePath.Add(lastNode);
-                if (nodePath.Contains(node)) break;
-                lastNode = root[lastNode];
+                node.Censor(startX, startY);
+                while (true)
+                {
+                    nodePath.Add(lastNode);
+                    if (nodePath.Contains(node)) break;
+                    lastNode = root[lastNode];
+                }
             }
-            for(int i = nodePath.Count - 1; i >= 0; i--)
+            catch (Exception err)
+            {
+                Console.Clear();
+                Console.WriteLine(" 오류 내용: " + err.Message);
+                Console.WriteLine("원인: 미로를 제작해놓지 않았거나 수치 오류입니다.");
+            }
+            for (int i = nodePath.Count - 1; i >= 0; i--)
             {
                 p.x = nodePath[i].x;
                 p.y = nodePath[i].y;
                 Console.SetCursorPosition(p.x, p.y);
-                Console.Write("P");
+                Console.Write(p.Image);
                 Thread.Sleep(100);
                 Console.SetCursorPosition(p.x, p.y);
                 Console.Write(" ");
