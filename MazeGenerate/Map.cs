@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MazeGenerate
@@ -18,6 +19,7 @@ namespace MazeGenerate
         private readonly int height, width;
         private bool isClear = true;
         Player P = new Player('P', 0, 0); //첫번은 플레이어 문자, 나머지는 차례로 가로축과 세로축 위치.
+        Astar astar;
         Stage[,] map;
         public Map(int inWidth, int inHeight)
         {
@@ -39,7 +41,7 @@ namespace MazeGenerate
         public void Print()
         {
             P.Input();
-
+            //astar.Track(P);
             if (P.y < 0 || P.y >= height) P.y = yPos;
             else if (map[P.x, P.y] == Stage.Wall)
             {
@@ -55,7 +57,6 @@ namespace MazeGenerate
                 Console.Write(P.Image);
                 if (map[P.x, P.y] == Stage.Goal) isClear = true;
             }
-
         }
 
         public void Draw()
@@ -75,6 +76,8 @@ namespace MazeGenerate
             //mazeGenerator.HuntAndKill();
             stopwatch.Stop();
 
+            astar = new Astar(map);
+            astar.FindingPath();
             for (int i = 0; i < width - 2; i+=2)
             {
                 for (int j = 0; j < height - 1; j++)
