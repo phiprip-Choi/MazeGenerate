@@ -71,7 +71,7 @@ namespace MazeGenerate
 
             stopwatch.Start();
             //mazeGenerator.BinaryTree();
-            mazeGenerator.BackTracking();
+            //mazeGenerator.BackTracking();
             //mazeGenerator.Eller();
             //mazeGenerator.Prim();
             //mazeGenerator.Kruskal();
