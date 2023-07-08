@@ -18,7 +18,7 @@ namespace MazeGenerate
         private int xPos, yPos;
         private readonly int height, width;
         private bool isClear = true;
-        Player P; //첫번은 플레이어 문자, 나머지는 차례로 가로축과 세로축 위치.
+        Player P; 
         Astar astar;
         MazeGenerator mazeGenerator;
         Stage[,] map;
@@ -90,7 +90,7 @@ namespace MazeGenerate
                     }
                     else if(Stage.Start == map[i,j])
                     {
-                        P = new Player('P', i, j);
+                        P = new Player('P', i, j); //첫번은 플레이어 문자, 나머지는 차례로 가로축과 세로축 위치.
                         Console.SetCursorPosition(i, j);
                         Console.Write(P.Image);
                         xPos = P.x; yPos = P.y;
