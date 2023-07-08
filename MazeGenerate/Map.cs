@@ -18,8 +18,9 @@ namespace MazeGenerate
         private int xPos, yPos;
         private readonly int height, width;
         private bool isClear = true;
-        Player P = new Player('P', 0, 0); //첫번은 플레이어 문자, 나머지는 차례로 가로축과 세로축 위치.
+        Player P; //첫번은 플레이어 문자, 나머지는 차례로 가로축과 세로축 위치.
         Astar astar;
+        MazeGenerator mazeGenerator;
         Stage[,] map;
         public Map(int inWidth, int inHeight)
         {
@@ -41,7 +42,7 @@ namespace MazeGenerate
         public void Print()
         {
             P.Input();
-            //astar.Track(P);
+            //astar.Tracking(P);
             if (P.y < 0 || P.y >= height) P.y = yPos;
             else if (map[P.x, P.y] == Stage.Wall)
             {
@@ -65,7 +66,7 @@ namespace MazeGenerate
             Console.Clear();
             Console.SetWindowSize(width, height);
             Stopwatch stopwatch = new Stopwatch();
-            MazeGenerator mazeGenerator = new MazeGenerator(map);
+            mazeGenerator = new MazeGenerator(map);
 
             stopwatch.Start();
             //mazeGenerator.BinaryTree();
@@ -89,9 +90,9 @@ namespace MazeGenerate
                     }
                     else if(Stage.Start == map[i,j])
                     {
+                        P = new Player('P', i, j);
                         Console.SetCursorPosition(i, j);
                         Console.Write(P.Image);
-                        P.x = i; P.y = j;
                         xPos = P.x; yPos = P.y;
                     }
                 }

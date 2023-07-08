@@ -57,9 +57,7 @@ namespace MazeGenerate
 
         public void FindingPath()
         {
-            int x, y;
-            x = startX; y = startY;
-            node.Censor(x, y);
+            node.Censor(startX, startY);
             openList.Add(node, 0);
             bool isGoal = false;
             while (openList.Count > 0  && !isGoal)
@@ -72,11 +70,11 @@ namespace MazeGenerate
                     {
                         NodePosition currentNode = new NodePosition();
                         currentNode.Censor(xSel, ySel);
-                        if ((node.x == xSel && node.y == ySel) || 
-                            ySel < 0 || ySel > map.GetLength(1) - 2 ||
+                        if ((node.x == xSel && node.y == ySel) || //현재 구역 제외
+                            ySel < 0 || ySel > map.GetLength(1) - 2 || // 범위 외 제외
                             xSel < 0 || xSel > map.GetLength(0) - 3 ||
-                            closeList.ContainsKey(currentNode) ||
-                            map[xSel, ySel] == Stage.Wall) continue;
+                            closeList.ContainsKey(currentNode) || // 이미 등록된 구역 제외
+                            map[xSel, ySel] == Stage.Wall) continue; // 벽이 위치한 구역 제외
   
                             if (openList.ContainsKey(currentNode) && openList[currentNode] < FCost(node, currentNode)) 
                                 continue;
@@ -114,7 +112,7 @@ namespace MazeGenerate
                     openList[prev] - Math.Pow(prev.x - goalX, 2) - Math.Pow(prev.y- goalY, 2));
         }
 
-        public void Track(Player p)
+        public void Tracking(Player p)
         {
             node.Censor(startX, startY);
             while (true)
