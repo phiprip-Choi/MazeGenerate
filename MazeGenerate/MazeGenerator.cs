@@ -522,29 +522,27 @@ namespace MazeGenerate
                             if (visited.Any(v => (v.x == p.x) && (v.y == p.y + 2))) openWay.Add(1);
                             if (visited.Any(v => (v.x == p.x) && (v.y == p.y - 2))) openWay.Add(3);
 
-
                             if (openWay.Count > 0)
                             {
                                 byte dir = openWay[rand.Next(openWay.Count)];
-                                if (dir == 0)
+                                switch(dir)
                                 {
-                                    map[xPos + 2, yPos] = Stage.Room;
-                                    map[xPos + 3, yPos] = Stage.Room;
-                                }
-                                else if (dir == 1) 
-                                {
-                                    map[xPos, yPos + 1] = Stage.Room;
-                                    map[xPos + 1, yPos + 1] = Stage.Room;
-                                }
-                                else if (dir == 2) 
-                                {
-                                    map[xPos - 1, yPos] = Stage.Room;
-                                    map[xPos - 2, yPos] = Stage.Room;
-                                }
-                                else if (dir == 3) 
-                                {
-                                    map[xPos, yPos - 1] = Stage.Room;
-                                    map[xPos + 1, yPos - 1] = Stage.Room;
+                                    case 0:
+                                        map[xPos + 2, yPos] = Stage.Room;
+                                        map[xPos + 3, yPos] = Stage.Room;
+                                        break;
+                                    case 1:
+                                        map[xPos, yPos + 1] = Stage.Room;
+                                        map[xPos + 1, yPos + 1] = Stage.Room;
+                                        break;
+                                    case 2:
+                                        map[xPos - 1, yPos] = Stage.Room;
+                                        map[xPos - 2, yPos] = Stage.Room;
+                                        break;
+                                    case 3:
+                                        map[xPos, yPos - 1] = Stage.Room;
+                                        map[xPos + 1, yPos - 1] = Stage.Room;
+                                        break;
                                 }
                                 isRemainRoom = true;
                                 list.Add(p);

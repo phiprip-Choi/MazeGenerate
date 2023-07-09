@@ -73,9 +73,9 @@ namespace MazeGenerate
                             ySel < 0 || ySel > map.GetLength(1) - 2 || // 범위 외 제외
                             xSel < 0 || xSel > map.GetLength(0) - 3 || // 상동
                             closeList.Contains(currentNode) || // 이미 등록된 구역 제외
-                            map[xSel, ySel] == Stage.Wall || //벽이 위치한 구역 제외
+                            map[xSel, ySel] == Stage.Wall || // 벽이 위치한 구역 제외
                             (ySel == node.y + 1 && xSel > node.x) || // 검사 구역 제한
-                            (ySel == node.y + 1 && xSel < node.x)|| // 상동
+                            (ySel == node.y + 1 && xSel < node.x) || // 상동
                             (openList.ContainsKey(currentNode) && // 기존 F-Cost보다 높은 경우 제외
                             openList[currentNode] < FCost(node, currentNode))) continue;
 
@@ -127,7 +127,7 @@ namespace MazeGenerate
             {
                 Console.Clear();
                 Console.WriteLine(" 오류 내용: " + err.Message);
-                Console.WriteLine("원인: 미로를 제작해놓지 않았거나 수치 오류입니다.");
+                Console.WriteLine(" 원인: 미로를 제작해놓지 않았거나 수치 오류입니다.");
             }
             for (int i = nodePath.Count - 1; i >= 0; i--)
             {
