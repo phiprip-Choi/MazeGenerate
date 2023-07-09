@@ -70,34 +70,33 @@ namespace MazeGenerate
         public void BinaryTree()
         {
             Random rand = new Random();
-            for (int i = 2; i < xRange - 5; i += 4)
+            for (int i = xRange - 3; i > 4; i -= 4)
             {
-                for (int j = 1; j < yRange - 1; j += 2)
+                for (int j = yRange - 1; j > 1; j -= 2)
                 {
                     if (rand.Next(2) == 1)
                     {
-                        map[i + 2, j] = Stage.Room;
-                        map[i + 3, j] = Stage.Room;
+                        map[i - 1, j] = Stage.Room;
+                        map[i - 2, j] = Stage.Room;
 
                     }
                     else
                     {
-                        map[i, j + 1] = Stage.Room;
-                        map[i + 1, j + 1] = Stage.Room;
+                        map[i, j - 1] = Stage.Room;
+                        map[i + 1, j - 1] = Stage.Room;
                     }
                 }
             }
             for (int i = 4; i < xRange - 3; i += 4)
             {
-                map[i, yRange - 1] = Stage.Room;
-                map[i + 1, yRange - 1] = Stage.Room;
+                map[i, 1] = Stage.Room;
+                map[i + 1, 1] = Stage.Room;
             }
             for (int i = 2; i < yRange - 1; i += 2)
             {
-                map[xRange - 2, i] = Stage.Room;
-                map[xRange - 3, i] = Stage.Room;
+                map[2, i] = Stage.Room;
+                map[3, i] = Stage.Room;
             }
-
         }
 
         List<Point> prevRoom = new List<Point>();
