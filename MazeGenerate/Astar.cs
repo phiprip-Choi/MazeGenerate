@@ -15,7 +15,6 @@ namespace MazeGenerate
         Stage[,] map;
         private readonly int startX, startY, goalX, goalY;
         NodePosition node = new NodePosition(), lastNode = new NodePosition();
-        List<NodePosition> nodePath = new List<NodePosition>(); // 궤적 저장용
         HashSet<NodePosition> closeList = new HashSet<NodePosition>(); // 닫힌 구역(할당된 구역)
         Dictionary<NodePosition, int> openList = new Dictionary<NodePosition, int>(); // 열린 구역(비할당된 구역)
         Dictionary<NodePosition, NodePosition> root = new Dictionary<NodePosition, NodePosition>(); // 궤적 기록
@@ -113,6 +112,7 @@ namespace MazeGenerate
 
         public void Tracking(Player p)
         {
+            List<NodePosition> nodePath = new List<NodePosition>(); // 궤적 호출용
             try
             {
                 node.Censor(startX, startY);
