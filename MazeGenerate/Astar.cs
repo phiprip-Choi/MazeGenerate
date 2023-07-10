@@ -114,8 +114,6 @@ namespace MazeGenerate
 
         public void Tracking(Player p)
         {
-            List<NodePosition> nodePath = new List<NodePosition>(); // 궤적 호출용
-
             node.Censor(startX, startY);
             if (lastNode.x != goalX || lastNode.y != goalY)
             {
@@ -125,6 +123,7 @@ namespace MazeGenerate
             }
             else
             {
+                List<NodePosition> nodePath = new List<NodePosition> { lastNode }; // 궤적 호출용
                 while (!nodePath.Contains(node))
                 {
                     lastNode = root[lastNode];
