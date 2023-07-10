@@ -125,11 +125,10 @@ namespace MazeGenerate
             }
             else
             {
-                while (true)
+                while (!nodePath.Contains(node))
                 {
-                    nodePath.Add(lastNode);
-                    if (nodePath.Contains(node)) break;
                     lastNode = root[lastNode];
+                    nodePath.Add(lastNode);
                 }
                 for (int i = nodePath.Count - 1; i >= 0; i--)
                 {
