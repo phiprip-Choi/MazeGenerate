@@ -68,7 +68,7 @@ namespace MazeGenerate
                         NodePosition currentNode = new NodePosition();
                         currentNode.Censor(xSel, ySel);
 
-                        if ((node.x == xSel && node.y == ySel) || //현재 위치한 구역 제외
+                        if ((node.x == xSel && node.y == ySel) || // 현재 위치한 구역 제외
                             ySel < 0 || ySel > map.GetLength(1) - 2 || // 범위 외 제외
                             xSel < 0 || xSel > map.GetLength(0) - 3 || // 상동
                             closeList.Contains(currentNode) || // 이미 등록된 구역 제외
@@ -97,6 +97,8 @@ namespace MazeGenerate
                 closeList.Add(node);
                 openList.Remove(node);
             }
+            closeList.Clear();
+            openList.Clear();
         }
 
         private int FCost(NodePosition prev, NodePosition current)
@@ -113,31 +115,32 @@ namespace MazeGenerate
         public void Tracking(Player p)
         {
             List<NodePosition> nodePath = new List<NodePosition>(); // 궤적 호출용
-            try
+
+            node.Censor(startX, startY);
+            if (lastNode.x != goalX || lastNode.y != goalY)
             {
-                node.Censor(startX, startY);
+                Console.Clear();
+                Console.WriteLine("미로를 제작해놓지 않았거나 \n수치 오류입니다.");
+                throw new Exception("미로를 제작해놓지 않았거나 수치 오류입니다.");
+            }
+            else
+            {
                 while (true)
                 {
                     nodePath.Add(lastNode);
                     if (nodePath.Contains(node)) break;
                     lastNode = root[lastNode];
                 }
-            }
-            catch (Exception err)
-            {
-                Console.Clear();
-                Console.WriteLine(" 오류 내용: " + err.Message);
-                Console.WriteLine(" 원인: 미로를 제작해놓지 않았거나 수치 오류입니다.");
-            }
-            for (int i = nodePath.Count - 1; i >= 0; i--)
-            {
-                p.x = nodePath[i].x;
-                p.y = nodePath[i].y;
-                Console.SetCursorPosition(p.x, p.y);
-                Console.Write(p.Image);
-                Thread.Sleep(100);
-                Console.SetCursorPosition(p.x, p.y);
-                Console.Write(" ");
+                for (int i = nodePath.Count - 1; i >= 0; i--)
+                {
+                    p.x = nodePath[i].x;
+                    p.y = nodePath[i].y;
+                    Console.SetCursorPosition(p.x, p.y);
+                    Console.Write(p.Image);
+                    Thread.Sleep(100);
+                    Console.SetCursorPosition(p.x, p.y);
+                    Console.Write(" ");
+                }
             }
         }
     }
