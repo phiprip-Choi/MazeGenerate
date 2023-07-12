@@ -78,15 +78,11 @@ namespace MazeGenerate
                             (openList.ContainsKey(currentNode) && // 기존 F-Cost보다 높은 경우 제외
                             openList[currentNode] < FCost(node, currentNode))) continue;
 
-                        if ((map[xSel, ySel] != Stage.Goal))
+
+                        openList[currentNode] = FCost(node, currentNode);
+                        root[currentNode] = node;
+                        if ((map[xSel, ySel] == Stage.Goal))
                         {
-                            openList[currentNode] = FCost(node, currentNode);
-                            root[currentNode] = node;
-                        }
-                        else
-                        {
-                            openList[currentNode] = FCost(node, currentNode);
-                            root[currentNode] = node;
                             lastNode = currentNode;
                             isGoal = true;
                             ySel = node.y + 4;
