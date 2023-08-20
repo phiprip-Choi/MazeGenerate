@@ -99,90 +99,66 @@ namespace MazeGenerate
             }
         }
 
-        List<Point> prevRoom = new List<Point>();
-        HashSet<Point> storge = new HashSet<Point>();
+
         // 두번째 방법, 원점회귀 추적(Back-Tracking).
         public void BackTracking()
         {
-            Point point = new Point();
+            int x = 2, y = 1;
+            Stack<Point> track = new Stack<Point>();
+            HashSet<Point> visited = new HashSet<Point>();
+            Point p = new Point();
             Random rand = new Random();
-            int xTrack, yTrack;
-            bool[] isBlock = new bool[4];
-            // 난도 설정, 쉬움(2,1) 어려움(xRange - 3, yRange - 1),
-            // 난도 무작위, (rand.Next(1, (xRange - 1) / 4) * 4 - 2, rand.Next(1, yRange / 2) * 2 - 1)
 
-            if (prevRoom.Count < 1) 
-            { 
-                xTrack = xRange - 3; 
-                yTrack = yRange - 1; 
-                point.Censor(xTrack, yTrack);
-                prevRoom.Add(point);
-            }
-            else { xTrack = prevRoom[prevRoom.Count - 1].x; yTrack = prevRoom[prevRoom.Count - 1].y; }            
-            point.Censor(xTrack, yTrack);
-
-            while (!IsAllTrue(isBlock))
+            p.Censor(x, y);
+            track.Push(p);
+            do
             {
-                int r = rand.Next(4);
-                if (isBlock[r]) continue; //막힌 방향인지 미리 확인하는 조건
-                if (r == 0) // 우
+                List<int> unBlock = new List<int>();
+                p.Censor(x, y + 2); if (p.y < yRange && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(0);
+                p.Censor(x + 4, y); if (p.x < xRange && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(1);
+                p.Censor(x, y - 2); if (p.y >= 0 && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(2);
+                p.Censor(x - 4, y); if (p.x >= 0 && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(3);
+
+                if (unBlock.Count != 0)
                 {
-                    point.Censor(xTrack + 4, yTrack);
-                    if (point.x >= xRange || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
-                    else
+                    p.Censor(x, y);
+                    int r = unBlock[rand.Next(unBlock.Count)];
+                    if (r == 0)
                     {
-                        Clear(isBlock);
-                        map[xTrack + 2, yTrack] = Stage.Room;
-                        map[xTrack + 3, yTrack] = Stage.Room;
-                        prevRoom.Add(point);
-                        xTrack += 4;
+                        map[x, y + 1] = Stage.Room;
+                        map[x + 1, y + 1] = Stage.Room;
+                        p.y += 2;
                     }
+                    else if (r == 1)
+                    {
+                        map[x + 2, y] = Stage.Room;
+                        map[x + 3, y] = Stage.Room;
+                        p.x += 4;
+                    }
+                    else if (r == 2)
+                    {
+                        map[x, y - 1] = Stage.Room;
+                        map[x + 1, y - 1] = Stage.Room;
+                        p.y -= 2;
+                    }
+                    else if (r == 3)
+                    {
+                        map[x - 1, y] = Stage.Room;
+                        map[x - 2, y] = Stage.Room;
+                        p.x -= 4;
+                    }
+                    track.Push(p);
+                    x = p.x; y = p.y;
                 }
-                else if (r == 1) // 상
+                else
                 {
-                    point.Censor(xTrack, yTrack + 2);
-                    if (point.y >= yRange || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
-                    else
-                    {
-                        Clear(isBlock);
-                        map[xTrack, yTrack + 1] = Stage.Room;
-                        map[xTrack + 1, yTrack + 1] = Stage.Room;
-                        prevRoom.Add(point);
-                        yTrack += 2;
-                    }
+                    visited.Add(track.Peek());
+                    track.Pop();
+                    x = track.Peek().x;
+                    y = track.Peek().y;
                 }
-                else if (r == 2) // 좌
-                {
-                    point.Censor(xTrack - 4, yTrack);
-                    if (point.x <= 0 || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
-                    else
-                    {
-                        Clear(isBlock);
-                        map[xTrack - 1, yTrack] = Stage.Room;
-                        map[xTrack - 2, yTrack] = Stage.Room;
-                        prevRoom.Add(point);
-                        xTrack -= 4;
-                    }
-                }
-                else if (r == 3) // 하
-                {
-                    point.Censor(xTrack, yTrack - 2);
-                    if (point.y <= 0 || prevRoom.Contains(point) || storge.Contains(point)) { isBlock[r] = true; continue; }
-                    else
-                    {
-                        Clear(isBlock);
-                        map[xTrack, yTrack - 1] = Stage.Room;
-                        map[xTrack + 1, yTrack - 1] = Stage.Room;
-                        prevRoom.Add(point);
-                        yTrack -= 2;
-                    }
-                }
-            }
-            storge.Add(prevRoom[prevRoom.Count - 1]);
-            prevRoom.RemoveAt(prevRoom.Count - 1);
-            if (prevRoom.Count > 1) BackTracking();
-            prevRoom.Clear();
-            storge.Clear();
+                p.Censor(x, y);
+            } while (track.Count > 1);
         }
 
         // 세번째 방법, 무작위 획정(Eller's).
@@ -242,7 +218,7 @@ namespace MazeGenerate
                         point.Censor(x, y - 1);
                         int presentIndex = list.FindIndex(i => i.Contains(point));
 
-                        if (rand.Next(20) == 1) // 난도 조절, 숫자(자연수)가 낮을 수록 난도가 높아짐.
+                        if (rand.Next(23) == 1) // 난도 조절, 숫자(자연수)가 낮을 수록 난도가 높아짐.
                         {
                             unblockCount++;
                             map[x, y] = Stage.Room;
@@ -363,64 +339,47 @@ namespace MazeGenerate
 
                 while (true)
                 {
-                    int r = rand.Next(4);
-                    if (isBlock[r]) continue;
+                    List<int> unBlock = new List<int>();
+                    p.Censor(x, y + 2); if (p.y < yRange && !list[randIndexFirst].Contains(p)) unBlock.Add(0);
+                    p.Censor(x + 4, y); if (p.x < xRange && !list[randIndexFirst].Contains(p)) unBlock.Add(1);
+                    p.Censor(x, y - 2); if (p.y >= 0 && !list[randIndexFirst].Contains(p)) unBlock.Add(2);
+                    p.Censor(x - 4, y); if (p.x >= 0 && !list[randIndexFirst].Contains(p)) unBlock.Add(3);
 
-                    if (r == 0) // 상향
+                    if (unBlock.Count != 0)
                     {
-                        p.Censor(x, y + 2);
-                        if (p.y >= yRange || list[randIndexFirst].Contains(p)) isBlock[r] = true;
-                        else
+                        p.Censor(x, y);
+                        int r = unBlock[rand.Next(unBlock.Count)];
+                        if (r == 0)
                         {
-                            Clear(isBlock);
                             map[x, y + 1] = Stage.Room;
                             map[x + 1, y + 1] = Stage.Room;
-                            break;
+                            p.y += 2;
                         }
-                    }
-                    else if (r == 1) // 우측
-                    {
-                        p.Censor(x + 4, y);
-                        if (p.x >= xRange || list[randIndexFirst].Contains(p)) isBlock[r] = true;
-                        else
+                        else if (r == 1)
                         {
-                            Clear(isBlock);
                             map[x + 2, y] = Stage.Room;
                             map[x + 3, y] = Stage.Room;
-                            break;
+                            p.x += 4;
                         }
-                    }
-                    else if (r == 2) // 하향
-                    {
-                        p.Censor(x, y - 2);
-                        if (p.y <= 0 || list[randIndexFirst].Contains(p)) isBlock[r] = true;
-                        else
+                        else if (r == 2)
                         {
-                            Clear(isBlock);
                             map[x, y - 1] = Stage.Room;
                             map[x + 1, y - 1] = Stage.Room;
-                            break;
+                            p.y -= 2;
                         }
-                    }
-                    else if (r == 3) // 좌측
-                    {
-                        p.Censor(x - 4, y);
-                        if (p.x <= 0 || list[randIndexFirst].Contains(p)) isBlock[r] = true;
-                        else
+                        else if (r == 3)
                         {
-                            Clear(isBlock);
                             map[x - 1, y] = Stage.Room;
                             map[x - 2, y] = Stage.Room;
-                            break;
+                            p.x -= 4;
                         }
+                        break;
                     }
-
-                    if (IsAllTrue(isBlock))
+                    else
                     {
                         randIndexSecond = rand.Next(list[randIndexFirst].Count);
                         x = list[randIndexFirst][randIndexSecond].x;
                         y = list[randIndexFirst][randIndexSecond].y;
-                        Clear(isBlock);
                     }
                 }
                 list[randIndexFirst].AddRange(list[list.FindIndex(i => i.Contains(p))]);
@@ -448,62 +407,46 @@ namespace MazeGenerate
             {
                 bool isRemainRoom = false;
                 bool[] isBlock = new bool[4];
-                while (!IsAllTrue(isBlock))
+                while (true)
                 {
-                    int r = rand.Next(4);
-                    if (isBlock[r]) continue; // 막힌 방향인지 미리 확인하는 조건
-                    if (r == 0) // 우
+                    List<int> unBlock = new List<int>();
+                    p.Censor(x, y + 2); if (p.y < yRange && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(0);
+                    p.Censor(x + 4, y); if (p.x < xRange && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(1);
+                    p.Censor(x, y - 2); if (p.y >= 0 && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(2);
+                    p.Censor(x - 4, y); if (p.x >= 0 && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(3);
+
+                    if (unBlock.Count != 0)
                     {
-                        p.Censor(x + 4, y);
-                        if (p.x >= xRange || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
-                        else
+                        p.Censor(x, y);
+                        int r = unBlock[rand.Next(unBlock.Count)];
+                        if (r == 0)
                         {
-                            Clear(isBlock);
-                            map[x + 2, y] = Stage.Room;
-                            map[x + 3, y] = Stage.Room;
-                            x += 4;
-                            list.Add(p);
-                        }
-                    }
-                    else if (r == 1) // 상
-                    {
-                        p.Censor(x, y + 2);
-                        if (p.y >= yRange || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
-                        else
-                        {
-                            Clear(isBlock);
                             map[x, y + 1] = Stage.Room;
                             map[x + 1, y + 1] = Stage.Room;
-                            y += 2;
-                            list.Add(p);
+                            p.y += 2;
                         }
-                    }
-                    else if (r == 2) // 좌
-                    {
-                        p.Censor(x - 4, y);
-                        if (p.x <= 0 || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
-                        else
+                        else if (r == 1)
                         {
-                            Clear(isBlock);
-                            map[x - 1, y] = Stage.Room;
-                            map[x - 2, y] = Stage.Room;
-                            x -= 4;
-                            list.Add(p);
+                            map[x + 2, y] = Stage.Room;
+                            map[x + 3, y] = Stage.Room;
+                            p.x += 4;
                         }
-                    }
-                    else if (r == 3) // 하
-                    {
-                        p.Censor(x, y - 2);
-                        if (p.y <= 0 || list.Contains(p) || visited.Contains(p)) isBlock[r] = true;
-                        else
+                        else if (r == 2)
                         {
-                            Clear(isBlock);
                             map[x, y - 1] = Stage.Room;
                             map[x + 1, y - 1] = Stage.Room;
-                            y -= 2;
-                            list.Add(p);
+                            p.y -= 2;
                         }
+                        else if (r == 3)
+                        {
+                            map[x - 1, y] = Stage.Room;
+                            map[x - 2, y] = Stage.Room;
+                            p.x -= 4;
+                        }
+                        list.Add(p);
+                        x = p.x; y = p.y;
                     }
+                    else break;
                 }
 
                 visited.UnionWith(list);
@@ -556,8 +499,5 @@ namespace MazeGenerate
             }
             visited.Clear();
         }
-
-        void Clear(bool[] isBlock){ for (int j = 0; j < isBlock.Length; ++j) isBlock[j] = false; }
-        bool IsAllTrue(bool[] isBlock) { for (int j = 0; j < isBlock.Length; ++j) if (!isBlock[j]) return false; return true; }
     }
 }
