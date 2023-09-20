@@ -81,7 +81,7 @@ namespace MazeGenerate
 
                         openList[currentNode] = FCost(node, currentNode);
                         root[currentNode] = node;
-                        if ((map[xSel, ySel] == Stage.Goal))
+                        if (map[xSel, ySel] == Stage.Goal)
                         {
                             lastNode = currentNode;
                             isGoal = true;
