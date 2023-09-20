@@ -210,31 +210,29 @@ namespace MazeGenerate
                 }
                 else // 짝수 행의 벽들을 무작위로 허물기
                 {
-                    int unblockCount = 0;
-                    int count = 0;
+                    List<Point> unBlockList = new List<Point>();
                     for (int x = 2; x < xRange - 1; x += 4)
                     {
-                        count++;
+                        point.Censor(x, y+1);
+                        unBlockList.Add(point);
                         point.Censor(x, y - 1);
                         int presentIndex = list.FindIndex(i => i.Contains(point));
 
-                        if (rand.Next(23) == 1) // 난도 조절, 숫자(자연수)가 낮을 수록 난도가 높아짐.
-                        {
-                            unblockCount++;
-                            map[x, y] = Stage.Room;
-                            map[x + 1, y] = Stage.Room;
-                            map[x, y + 1] = Stage.Room;
-                            map[x + 1, y + 1] = Stage.Room;
-
-                            point.Censor(x, y + 1);
-                            list[presentIndex].Add(point);
-                        }
-
                         if (map[x + 2, y - 1] != Stage.Room) // 해당 구역의 끝에 다다르는 조건
                         {
-                            if (unblockCount < 1) x -= count * 4; // 획정된 구역의 아래 벽을 적어도 하나 허물라는 조건
-                            else unblockCount = 0;
-                            count = 0;
+                            int randCount = rand.Next(unBlockList.Count);
+                            do
+                            {
+                                int randIndex = rand.Next(unBlockList.Count);
+                                map[unBlockList[randIndex].x, unBlockList[randIndex].y - 1] = Stage.Room;
+                                map[unBlockList[randIndex].x + 1, unBlockList[randIndex].y - 1] = Stage.Room;
+                                map[unBlockList[randIndex].x, unBlockList[randIndex].y] = Stage.Room;
+                                map[unBlockList[randIndex].x + 1, unBlockList[randIndex].y] = Stage.Room;
+                                list[presentIndex].Add(unBlockList[randIndex]);
+                                unBlockList.RemoveAt(randIndex);
+                                randCount--;
+                            } while (randCount > 2);
+                            unBlockList.Clear();
                         }
                     }
                 }
@@ -319,6 +317,7 @@ namespace MazeGenerate
             Random rand = new Random();
             Point p = new Point();
             List<List<Point>> list = new List<List<Point>>();
+            HashSet<Point> closed = new HashSet<Point>();
 
             for (int y = 1; y < yRange; y += 2) // 미로의 놓인 모든 방을 리스트에 할당
             {
@@ -340,10 +339,10 @@ namespace MazeGenerate
                 while (true)
                 {
                     List<int> unBlock = new List<int>();
-                    p.Censor(x, y + 2); if (p.y < yRange && !list[randIndexFirst].Contains(p)) unBlock.Add(0);
-                    p.Censor(x + 4, y); if (p.x < xRange && !list[randIndexFirst].Contains(p)) unBlock.Add(1);
-                    p.Censor(x, y - 2); if (p.y >= 0 && !list[randIndexFirst].Contains(p)) unBlock.Add(2);
-                    p.Censor(x - 4, y); if (p.x >= 0 && !list[randIndexFirst].Contains(p)) unBlock.Add(3);
+                    p.Censor(x, y + 2); if (p.y < yRange && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(0);
+                    p.Censor(x + 4, y); if (p.x < xRange && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(1);
+                    p.Censor(x, y - 2); if (p.y >= 0 && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(2);
+                    p.Censor(x - 4, y); if (p.x >= 0 && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(3);
 
                     if (unBlock.Count != 0)
                     {
@@ -377,6 +376,8 @@ namespace MazeGenerate
                     }
                     else
                     {
+                        closed.Add(p);
+                        list[randIndexFirst].Remove(p);
                         randIndexSecond = rand.Next(list[randIndexFirst].Count);
                         x = list[randIndexFirst][randIndexSecond].x;
                         y = list[randIndexFirst][randIndexSecond].y;
