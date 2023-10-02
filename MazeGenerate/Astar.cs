@@ -14,7 +14,7 @@ namespace MazeGenerate
     {
         Stage[,] map;
         private readonly int startX, startY, goalX, goalY;
-        NodePosition node = new NodePosition(), lastNode = new NodePosition();
+        NodePosition lastNode = new NodePosition();
         HashSet<NodePosition> closeList = new HashSet<NodePosition>(); // 닫힌 구역(할당된 구역)
         Dictionary<NodePosition, int> openList = new Dictionary<NodePosition, int>(); // 열린 구역(비할당된 구역)
         Dictionary<NodePosition, NodePosition> root = new Dictionary<NodePosition, NodePosition>(); // 궤적 기록
@@ -54,6 +54,7 @@ namespace MazeGenerate
 
         public void FindingPath()
         {
+            NodePosition node = new NodePosition();
             node.Censor(startX, startY);
             openList.Add(node, 0);
             bool isGoal = false;
@@ -102,14 +103,16 @@ namespace MazeGenerate
             if (prev.x == startX && prev.y == startY) // 초기 구역만 예외로 설정
                 return (int)(Math.Pow(startX - current.x, 2) + Math.Pow(startY - current.y, 2) +
                     Math.Pow(current.x - goalX, 2) + Math.Pow(current.y - goalY, 2));
-            else // 나머지 경우. 각각 인접한 구역 간 거리와 이전 구역의 'F-Cost - H-Cost' 값을 서로 더해, 현 구역의 H-Cost 값과 합친다.
-                return (int)(Math.Pow(current.x - prev.x, 2) + Math.Pow(current.y - prev.y, 2) +
+
+            // 나머지 경우. 각각 인접한 구역 간 거리와 이전 구역의 'F-Cost - H-Cost' 값을 서로 더해, 현 구역의 H-Cost 값과 합친다.
+            return (int)(Math.Pow(current.x - prev.x, 2) + Math.Pow(current.y - prev.y, 2) +
                     Math.Pow(current.x - goalX, 2) + Math.Pow(current.y - goalY, 2) +
                     openList[prev] - Math.Pow(prev.x - goalX, 2) - Math.Pow(prev.y - goalY, 2));
         }
 
         public void Tracking(Player p)
         {
+            NodePosition node = new NodePosition();
             node.Censor(startX, startY);
             if (lastNode.x != goalX || lastNode.y != goalY)
             {

@@ -64,8 +64,25 @@ namespace MazeGenerate
             {
                 this.x = x; this.y = y;
             }
+            public static Point operator + (Point p1, Point p2)
+            {
+                Point point;
+                point.x = p1.x + p2.x;
+                point.y = p1.y + p2.y;
+                return point;
+            }
+            public static Point operator -(Point p1, Point p2)
+            {
+                Point point;
+                point.x = p1.x - p2.x;
+                point.y = p1.y - p2.y;
+                return point;
+            }
         }
-
+        private bool Range(Point p)
+        {
+            return p.y < yRange && p.x < xRange && p.y >= 0 && p.x >= 0;
+        }
         // 첫번째 방법, 가지 치기(BinaryTree).
         public void BinaryTree()
         {
@@ -108,16 +125,19 @@ namespace MazeGenerate
             HashSet<Point> visited = new HashSet<Point>();
             Point p = new Point();
             Random rand = new Random();
+            Point[] position = new Point[4];
+            position[0].y = 2; position[1].x = 4;
 
             p.Censor(x, y);
             track.Push(p);
             do
             {
                 List<int> unBlock = new List<int>();
-                p.Censor(x, y + 2); if (p.y < yRange && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(0);
-                p.Censor(x + 4, y); if (p.x < xRange && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(1);
-                p.Censor(x, y - 2); if (p.y >= 0 && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(2);
-                p.Censor(x - 4, y); if (p.x >= 0 && !track.Contains(p) && !visited.Contains(p)) unBlock.Add(3);
+                for(int i = 0; i<4; i++) // 상하좌우 검사
+                {
+                    Point num = i < 2 ? p + position[i] : p - position[i - 2];
+                    if (!track.Contains(num) && !visited.Contains(num) && Range(num)) unBlock.Add(i);
+                }
 
                 if (unBlock.Count != 0)
                 {
@@ -190,7 +210,7 @@ namespace MazeGenerate
                         int presentIndex = list.FindIndex(a => a.Contains(point));
 
                         point.Censor(x + 4, y);
-                        if (rand.Next(5) > 1 && !list[presentIndex].Contains(point))
+                        if (rand.Next(6) > 2 && !list[presentIndex].Contains(point))
                         {
                             map[x + 2, y] = Stage.Room;
                             map[x + 3, y] = Stage.Room;
@@ -262,6 +282,8 @@ namespace MazeGenerate
             List<Point> list = new List<Point>();
             Dictionary<Point, int> frontier = new Dictionary<Point, int>();
             Random rand = new Random();
+            Point[] position = new Point[2];
+            position[0].y = 2; position[1].x = 4;
 
             int x = rand.Next(1, (xRange - 1) / 4) * 4 - 2; // 일반항 x = 4*n - 2, 그러므로 가로축 방의 최대항은 N = (X + 2)/4
             int y = rand.Next(1, yRange / 2) * 2 - 1; // 일반항 y = 2*n - 1, 그러므로 세로축 방의 최대항은 N = (Y + 1)/2
@@ -269,18 +291,11 @@ namespace MazeGenerate
             list.Add(p);
             do
             {
-                p.Censor(x + 4, y); // 우측
-                if (p.x <= xRange && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 1);
-
-                p.Censor(x - 4, y); // 좌측
-                if (p.x >= 0 && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 3); 
-
-                p.Censor(x, y + 2); // 상향
-                if (p.y <= yRange && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 0); 
-
-                p.Censor(x, y - 2); // 하향
-                if (p.y >= 0 && !list.Contains(p) && !frontier.ContainsKey(p)) frontier.Add(p, 2); 
-
+                for (int i = 0; i < 4; i++) // 상하좌우 검사
+                {
+                    Point num = (i < 2) ? p + position[i] : p - position[i - 2];
+                    if (!list.Contains(num) && !frontier.ContainsKey(num) && Range(num)) frontier.Add(num, i);
+                }
 
                 int randIndex = rand.Next(frontier.Count);
                 x = frontier.ElementAt(randIndex).Key.x;
@@ -305,6 +320,7 @@ namespace MazeGenerate
                     map[x + 2, y] = Stage.Room;
                     map[x + 3, y] = Stage.Room;
                 }
+                p.Censor(x, y);
                 list.Add(frontier.ElementAt(randIndex).Key);
                 frontier.Remove(frontier.ElementAt(randIndex).Key);
             } while (frontier.Count > 0);
@@ -318,6 +334,8 @@ namespace MazeGenerate
             Point p = new Point();
             List<List<Point>> list = new List<List<Point>>();
             HashSet<Point> closed = new HashSet<Point>();
+            Point[] position = new Point[2];
+            position[0].y = 2; position[1].x = 4;
 
             for (int y = 1; y < yRange; y += 2) // 미로의 놓인 모든 방을 리스트에 할당
             {
@@ -334,19 +352,18 @@ namespace MazeGenerate
                 //상위 리스트와 하위 리스트의 모든 항 중 하나를 무작위로 설정
                 int randIndexFirst = rand.Next(list.Count), randIndexSecond = rand.Next(list[randIndexFirst].Count);
                 int x = list[randIndexFirst][randIndexSecond].x, y = list[randIndexFirst][randIndexSecond].y;
-                bool[] isBlock = new bool[4];
-
                 while (true)
                 {
+                    p.Censor(x, y);
                     List<int> unBlock = new List<int>();
-                    p.Censor(x, y + 2); if (p.y < yRange && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(0);
-                    p.Censor(x + 4, y); if (p.x < xRange && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(1);
-                    p.Censor(x, y - 2); if (p.y >= 0 && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(2);
-                    p.Censor(x - 4, y); if (p.x >= 0 && !list[randIndexFirst].Contains(p) && !closed.Contains(p)) unBlock.Add(3);
+                    for (int i = 0; i < 4; i++) // 상하좌우 검사
+                    {
+                        Point num = (i < 2) ? p + position[i] : p - position[i - 2];
+                        if (!list[randIndexFirst].Contains(num) && !closed.Contains(num) && Range(num)) unBlock.Add(i);
+                    }
 
                     if (unBlock.Count != 0)
                     {
-                        p.Censor(x, y);
                         int r = unBlock[rand.Next(unBlock.Count)];
                         if (r == 0)
                         {
@@ -397,6 +414,8 @@ namespace MazeGenerate
             List<Point> list = new List<Point>();
             HashSet<Point> visited = new HashSet<Point>();
             Random rand = new Random();
+            Point[] position = new Point[2];
+            position[0].y = 2; position[1].x = 4;
 
             bool isEnd = false;
             int x = rand.Next(1, (xRange - 1) / 4) * 4 - 2;
@@ -407,18 +426,18 @@ namespace MazeGenerate
             while (!isEnd)
             {
                 bool isRemainRoom = false;
-                bool[] isBlock = new bool[4];
                 while (true)
                 {
+                    p.Censor(x, y);
                     List<int> unBlock = new List<int>();
-                    p.Censor(x, y + 2); if (p.y < yRange && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(0);
-                    p.Censor(x + 4, y); if (p.x < xRange && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(1);
-                    p.Censor(x, y - 2); if (p.y >= 0 && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(2);
-                    p.Censor(x - 4, y); if (p.x >= 0 && !list.Contains(p) && !visited.Contains(p)) unBlock.Add(3);
+                    for (int i = 0; i < 4; i++) // 상하좌우 검사
+                    {
+                        Point num = i < 2 ? p + position[i] : p - position[i - 2];
+                        if (!list.Contains(num) && !visited.Contains(num) && Range(num)) unBlock.Add(i);
+                    }
 
                     if (unBlock.Count != 0)
                     {
-                        p.Censor(x, y);
                         int r = unBlock[rand.Next(unBlock.Count)];
                         if (r == 0)
                         {
@@ -460,31 +479,32 @@ namespace MazeGenerate
                         if (!visited.Contains(p))
                         {
                             List<byte> openWay = new List<byte>();
-                            if (visited.Any(v => (v.x == p.x + 4) && (v.y == p.y))) openWay.Add(0);
-                            if (visited.Any(v => (v.x == p.x - 4) && (v.y == p.y))) openWay.Add(2);
-                            if (visited.Any(v => (v.x == p.x) && (v.y == p.y + 2))) openWay.Add(1);
-                            if (visited.Any(v => (v.x == p.x) && (v.y == p.y - 2))) openWay.Add(3);
+                            for (byte i = 0; i < 4; i++) // 상하좌우 검사
+                            {
+                                Point num = i < 2 ? p + position[i] : p - position[i - 2];
+                                if (visited.Contains(num)) openWay.Add(i);
+                            }
 
                             if (openWay.Count > 0)
                             {
                                 byte dir = openWay[rand.Next(openWay.Count)];
-                                switch(dir)
+                                switch(dir) // 시계 방향 순서로 상 우 하 좌
                                 {
                                     case 0:
-                                        map[xPos + 2, yPos] = Stage.Room;
-                                        map[xPos + 3, yPos] = Stage.Room;
-                                        break;
-                                    case 1:
                                         map[xPos, yPos + 1] = Stage.Room;
                                         map[xPos + 1, yPos + 1] = Stage.Room;
                                         break;
-                                    case 2:
-                                        map[xPos - 1, yPos] = Stage.Room;
-                                        map[xPos - 2, yPos] = Stage.Room;
+                                    case 1:
+                                        map[xPos + 2, yPos] = Stage.Room;
+                                        map[xPos + 3, yPos] = Stage.Room;
                                         break;
-                                    case 3:
+                                    case 2:
                                         map[xPos, yPos - 1] = Stage.Room;
                                         map[xPos + 1, yPos - 1] = Stage.Room;
+                                        break;
+                                    case 3:
+                                        map[xPos - 1, yPos] = Stage.Room;
+                                        map[xPos - 2, yPos] = Stage.Room;
                                         break;
                                 }
                                 isRemainRoom = true;
