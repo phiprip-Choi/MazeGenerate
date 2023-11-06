@@ -1,143 +1,140 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace MazeGenerate
 {
     class Astar
     {
-        Stage[,] map;
-        private readonly int startX, startY, goalX, goalY;
+        private readonly Stage[,] map;
+        private readonly NodePosition startNode, goalNode;
+        private  List<NodePosition> path;
         NodePosition lastNode = new NodePosition();
-        HashSet<NodePosition> closeList = new HashSet<NodePosition>(); // 닫힌 구역(할당된 구역)
-        Dictionary<NodePosition, int> openList = new Dictionary<NodePosition, int>(); // 열린 구역(비할당된 구역)
-        Dictionary<NodePosition, NodePosition> root = new Dictionary<NodePosition, NodePosition>(); // 궤적 기록
 
         public Astar(Stage[,] map)
         {
             this.map = map;
-
             for (int y = 0; y < map.GetLength(1); y++)
             {
-                for (int x = 0; x < map.GetLength(0); x++)
+                for (int x = 0; x < map.GetLength(0); x+=2)
                 {
-                    if (Stage.Start == map[x, y])
-                    {
-                        startX = x;
-                        startY = y;
-                        x++;
-                    }
-                    else if (Stage.Goal == map[x, y])
-                    {
-                        goalX = x;
-                        goalY = y;
-                        x++;
-                    }
+                    if (Stage.Start == map[x, y]) startNode = new NodePosition(x, y);
+                    else if (Stage.Goal == map[x, y]) goalNode = new NodePosition(x, y);                    
                 }
             }
+            FindingPath();
         }
 
         private struct NodePosition
         {
             public int x, y;
-            public void Censor(int x, int y)
+
+            public NodePosition(int x, int y)
             {
                 this.x = x; this.y = y;
             }
+            public NodePosition(NodePosition node)
+            {
+                this.x = node.x; this.y = node.y;
+            }
+            public static bool operator ==(NodePosition p1, NodePosition p2)
+            {
+                if ((p1.x == p2.x) && (p1.y == p2.y)) return true;
+                return false;
+            }
+            public static bool operator !=(NodePosition p1, NodePosition p2)
+            {
+                if ((p1.x != p2.x) || (p1.y != p2.y)) return true;
+                return false;
+            }
         }
 
-        public void FindingPath()
+        private struct NodeCost : IComparable<NodeCost>
         {
-            NodePosition node = new NodePosition();
-            node.Censor(startX, startY);
-            openList.Add(node, 0);
-            bool isGoal = false;
-            while (openList.Count > 0 && !isGoal)
+            public int hCost, gCost, fCost;
+            public NodePosition? prevNode;
+
+            public NodeCost(NodePosition? prevNode = null, int gCost = 0, int hCost= 0)
             {
-                node = openList.OrderBy(k => k.Value).FirstOrDefault().Key; //오름차순으로 정렬해 가장 적은 값(F-cost)을 추출
+                this.prevNode = prevNode;
+                this.gCost = gCost;
+                this.hCost = hCost;
+                fCost = gCost + hCost;
+            }
+            public int CompareTo(NodeCost other)
+            {
+                return this.fCost - other.fCost;
+            }
+        }
 
-                for (int ySel = node.y - 1; ySel < node.y + 2; ySel++)
+        private void FindingPath()
+        {
+            Dictionary<NodePosition, NodeCost> openDic = new Dictionary<NodePosition, NodeCost>();
+            Hashtable closeTable = new Hashtable();
+            bool isGoal = false;
+
+            openDic.Add(startNode, new NodeCost());
+            while(openDic.Count > 0 && !isGoal) 
+            {
+                NodePosition nodePos = new NodePosition(openDic.OrderBy(k => k.Value).FirstOrDefault().Key);
+                for (int ySel = nodePos.y - 1; ySel < nodePos.y + 2; ySel++)
                 {
-                    for (int xSel = node.x - 2; xSel < node.x + 3; xSel++)
+                    for (int xSel = nodePos.x - 2; xSel < nodePos.x + 3; xSel++)
                     {
-                        NodePosition currentNode = new NodePosition();
-                        currentNode.Censor(xSel, ySel);
+                        NodePosition currentNode = new NodePosition(xSel, ySel);
+                        NodeCost currentCost = caculateCost(nodePos, currentNode, openDic[nodePos].gCost);
 
-                        if ((node.x == xSel && node.y == ySel) || // 현재 위치한 구역 제외
+                        if ((nodePos.x == xSel && nodePos.y == ySel) || // 현재 위치한 구역 제외
                             ySel < 0 || ySel > map.GetLength(1) - 2 || // 범위 외 제외
                             xSel < 0 || xSel > map.GetLength(0) - 3 || // 상동
-                            closeList.Contains(currentNode) || // 이미 등록된 구역 제외
+                            closeTable.ContainsKey(currentNode) || // 이미 등록된 구역 제외
                             map[xSel, ySel] == Stage.Wall || // 벽이 위치한 구역 제외
-                            (ySel == node.y + 1 && xSel > node.x) || // 검사 구역 제한
-                            (ySel == node.y + 1 && xSel < node.x) || // 상동
-                            (openList.ContainsKey(currentNode) && // 기존 F-Cost보다 높은 경우 제외
-                            openList[currentNode] < FCost(node, currentNode))) continue;
+                            (ySel == nodePos.y + 1 && xSel > nodePos.x) || // 검사 구역 제한
+                            (ySel == nodePos.y + 1 && xSel < nodePos.x) || // 상동
+                            (openDic.ContainsKey(currentNode) && // 기존 F-Cost보다 높은 경우 제외
+                            openDic[currentNode].fCost < currentCost.fCost)) continue;
 
-
-                        openList[currentNode] = FCost(node, currentNode);
-                        root[currentNode] = node;
+                        openDic[currentNode] = currentCost;
                         if (map[xSel, ySel] == Stage.Goal)
                         {
                             lastNode = currentNode;
+                            closeTable[lastNode] = nodePos;
                             isGoal = true;
-                            ySel = node.y + 4;
+                            ySel = nodePos.y + 2;
                             break;
                         }
                     }
                 }
-                closeList.Add(node);
-                openList.Remove(node);
+                closeTable[nodePos] = openDic[nodePos].prevNode;
+                openDic.Remove(nodePos);
             }
-            closeList.Clear();
-            openList.Clear();
+            path = new List<NodePosition>() { lastNode };
+            while (lastNode != startNode)
+            {
+                lastNode = (NodePosition)closeTable[lastNode];
+                path.Add(lastNode);
+            }
         }
-
-        private int FCost(NodePosition prev, NodePosition current)
+        private NodeCost caculateCost(NodePosition prevPos,  NodePosition presPos, int gCost) 
         {
-            if (prev.x == startX && prev.y == startY) // 초기 구역만 예외로 설정
-                return (int)(Math.Pow(startX - current.x, 2) + Math.Pow(startY - current.y, 2) +
-                    Math.Pow(current.x - goalX, 2) + Math.Pow(current.y - goalY, 2));
-
-            // 나머지 경우. 각각 인접한 구역 간 거리와 이전 구역의 'F-Cost - H-Cost' 값을 서로 더해, 현 구역의 H-Cost 값과 합친다.
-            return (int)(Math.Pow(current.x - prev.x, 2) + Math.Pow(current.y - prev.y, 2) +
-                    Math.Pow(current.x - goalX, 2) + Math.Pow(current.y - goalY, 2) +
-                    openList[prev] - Math.Pow(prev.x - goalX, 2) - Math.Pow(prev.y - goalY, 2));
+            return new NodeCost(prevPos, 
+                gCost + (presPos.x == prevPos.x || presPos.y == prevPos.y ? 10 : 14), //gCost 값 직선 10 대각선 14
+                Math.Abs(presPos.x - goalNode.x) + Math.Abs(presPos.y - goalNode.y)); //hCost 값(맨하탄)
         }
-
         public void Tracking(Player p)
         {
-            NodePosition node = new NodePosition();
-            node.Censor(startX, startY);
-            if (lastNode.x != goalX || lastNode.y != goalY)
+            for (int i = path.Count - 1; i >= 0; i--)
             {
-                Console.Clear();
-                Console.WriteLine("미로를 제작해놓지 않았거나 \n수치 오류입니다.");
-                throw new Exception("미로를 제작해놓지 않았거나 수치 오류입니다.");
-            }
-            else
-            {
-                List<NodePosition> nodePath = new List<NodePosition> { lastNode }; // 궤적 호출용
-                while (!nodePath.Contains(node))
-                {
-                    lastNode = root[lastNode];
-                    nodePath.Add(lastNode);
-                }
-                for (int i = nodePath.Count - 1; i >= 0; i--)
-                {
-                    p.x = nodePath[i].x;
-                    p.y = nodePath[i].y;
-                    Console.SetCursorPosition(p.x, p.y);
-                    Console.Write(p.Image);
-                    Thread.Sleep(100);
-                    Console.SetCursorPosition(p.x, p.y);
-                    Console.Write(" ");
-                }
+                p.x = path[i].x;
+                p.y = path[i].y;
+                Console.SetCursorPosition(p.x, p.y);
+                Console.Write(p.Image);
+                Thread.Sleep(100);
+                Console.SetCursorPosition(p.x, p.y);
+                Console.Write(" ");
             }
         }
     }

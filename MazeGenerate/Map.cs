@@ -72,15 +72,13 @@ namespace MazeGenerate
             stopwatch.Start();
             //mazeGenerator.BinaryTree();
             //mazeGenerator.BackTracking();
-            //mazeGenerator.Eller();
+            mazeGenerator.Eller();
             //mazeGenerator.Prim();
             //mazeGenerator.Kruskal();
             //mazeGenerator.HuntAndKill();
             stopwatch.Stop();
 
             astar = new Astar(map);
-            astar.FindingPath();
-
 
             for (int i = 0; i < width - 2; i+=2)
             {

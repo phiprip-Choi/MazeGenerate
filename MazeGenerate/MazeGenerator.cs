@@ -83,6 +83,7 @@ namespace MazeGenerate
         {
             return p.y < yRange && p.x < xRange && p.y >= 0 && p.x >= 0;
         }
+
         // 첫번째 방법, 가지 치기(BinaryTree).
         public void BinaryTree()
         {
@@ -210,7 +211,7 @@ namespace MazeGenerate
                         int presentIndex = list.FindIndex(a => a.Contains(point));
 
                         point.Censor(x + 4, y);
-                        if (rand.Next(6) > 2 && !list[presentIndex].Contains(point))
+                        if (rand.Next(4) > 1 && !list[presentIndex].Contains(point))
                         {
                             map[x + 2, y] = Stage.Room;
                             map[x + 3, y] = Stage.Room;
@@ -235,11 +236,10 @@ namespace MazeGenerate
                     {
                         point.Censor(x, y+1);
                         unBlockList.Add(point);
-                        point.Censor(x, y - 1);
-                        int presentIndex = list.FindIndex(i => i.Contains(point));
-
                         if (map[x + 2, y - 1] != Stage.Room) // 해당 구역의 끝에 다다르는 조건
                         {
+                            point.Censor(x, y - 1);
+                            int presentIndex = list.FindIndex(i => i.Contains(point));
                             int randCount = rand.Next(unBlockList.Count);
                             do
                             {
@@ -410,10 +410,11 @@ namespace MazeGenerate
         // 번외, 원점휘귀 추적을 개량한 알고리즘 '색출과 축출(Hunt-and-Kill)'
         public void HuntAndKill()
         {
-            Point p = new Point();
             List<Point> list = new List<Point>();
             HashSet<Point> visited = new HashSet<Point>();
             Random rand = new Random();
+
+            Point p = new Point();
             Point[] position = new Point[2];
             position[0].y = 2; position[1].x = 4;
 
