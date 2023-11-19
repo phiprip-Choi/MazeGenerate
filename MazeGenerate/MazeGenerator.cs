@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace MazeGenerate
 {
@@ -71,7 +67,7 @@ namespace MazeGenerate
                 point.y = p1.y + p2.y;
                 return point;
             }
-            public static Point operator -(Point p1, Point p2)
+            public static Point operator -  (Point p1, Point p2)
             {
                 Point point;
                 point.x = p1.x - p2.x;

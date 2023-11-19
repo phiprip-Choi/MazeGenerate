@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,7 +11,6 @@ namespace MazeGenerate
         private readonly Stage[,] map;
         private readonly NodePosition startNode, goalNode;
         private  List<NodePosition> path;
-        NodePosition lastNode = new NodePosition();
 
         public Astar(Stage[,] map)
         {
@@ -52,14 +50,19 @@ namespace MazeGenerate
             }
         }
 
-        private struct NodeCost : IComparable<NodeCost>
+        private class NodeCost : IComparable<NodeCost>
         {
             public int hCost, gCost, fCost;
-            public NodePosition? prevNode;
-
-            public NodeCost(NodePosition? prevNode = null, int gCost = 0, int hCost= 0)
+            public NodeCost prevNode = null;
+            public NodePosition? nodePos;
+            public NodeCost(NodePosition nodePos)
+            {
+                this.nodePos = nodePos;
+            }
+            public NodeCost(NodeCost prevNode = null, NodePosition? nodePos = null, int gCost = 0, int hCost= 0)
             {
                 this.prevNode = prevNode;
+                this.nodePos = nodePos;
                 this.gCost = gCost;
                 this.hCost = hCost;
                 fCost = gCost + hCost;
@@ -73,10 +76,11 @@ namespace MazeGenerate
         private void FindingPath()
         {
             Dictionary<NodePosition, NodeCost> openDic = new Dictionary<NodePosition, NodeCost>();
-            Hashtable closeTable = new Hashtable();
+            HashSet<NodePosition> closeSet = new HashSet<NodePosition>();
+            NodeCost lastNode = new NodeCost();
             bool isGoal = false;
 
-            openDic.Add(startNode, new NodeCost());
+            openDic.Add(startNode, new NodeCost(startNode));
             while(openDic.Count > 0 && !isGoal) 
             {
                 NodePosition nodePos = new NodePosition(openDic.OrderBy(k => k.Value).FirstOrDefault().Key);
@@ -85,12 +89,12 @@ namespace MazeGenerate
                     for (int xSel = nodePos.x - 2; xSel < nodePos.x + 3; xSel++)
                     {
                         NodePosition currentNode = new NodePosition(xSel, ySel);
-                        NodeCost currentCost = caculateCost(nodePos, currentNode, openDic[nodePos].gCost);
+                        NodeCost currentCost = caculateCost(openDic[nodePos], nodePos, currentNode, openDic[nodePos].gCost);
 
                         if ((nodePos.x == xSel && nodePos.y == ySel) || // 현재 위치한 구역 제외
                             ySel < 0 || ySel > map.GetLength(1) - 2 || // 범위 외 제외
                             xSel < 0 || xSel > map.GetLength(0) - 3 || // 상동
-                            closeTable.ContainsKey(currentNode) || // 이미 등록된 구역 제외
+                            closeSet.Contains(currentNode) || // 이미 등록된 구역 제외
                             map[xSel, ySel] == Stage.Wall || // 벽이 위치한 구역 제외
                             (ySel == nodePos.y + 1 && xSel > nodePos.x) || // 검사 구역 제한
                             (ySel == nodePos.y + 1 && xSel < nodePos.x) || // 상동
@@ -100,27 +104,26 @@ namespace MazeGenerate
                         openDic[currentNode] = currentCost;
                         if (map[xSel, ySel] == Stage.Goal)
                         {
-                            lastNode = currentNode;
-                            closeTable[lastNode] = nodePos;
+                            lastNode = currentCost;
                             isGoal = true;
                             ySel = nodePos.y + 2;
                             break;
                         }
                     }
                 }
-                closeTable[nodePos] = openDic[nodePos].prevNode;
+                closeSet.Add(nodePos);
                 openDic.Remove(nodePos);
             }
-            path = new List<NodePosition>() { lastNode };
-            while (lastNode != startNode)
+            path = new List<NodePosition>();
+            while (lastNode != null)
             {
-                lastNode = (NodePosition)closeTable[lastNode];
-                path.Add(lastNode);
+                path.Add((NodePosition)lastNode.nodePos);
+                lastNode = lastNode.prevNode;
             }
         }
-        private NodeCost caculateCost(NodePosition prevPos,  NodePosition presPos, int gCost) 
+        private NodeCost caculateCost(NodeCost prevNode, NodePosition prevPos,  NodePosition presPos, int gCost) 
         {
-            return new NodeCost(prevPos, 
+            return new NodeCost(prevNode, presPos, 
                 gCost + (presPos.x == prevPos.x || presPos.y == prevPos.y ? 10 : 14), //gCost 값 직선 10 대각선 14
                 Math.Abs(presPos.x - goalNode.x) + Math.Abs(presPos.y - goalNode.y)); //hCost 값(맨하탄)
         }

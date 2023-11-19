@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Data;
-using System.Globalization;
-using System.Runtime.ExceptionServices;
-using System.Text;
 
 namespace MazeGenerate
 {
