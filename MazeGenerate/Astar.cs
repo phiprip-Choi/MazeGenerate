@@ -40,13 +40,21 @@ namespace MazeGenerate
             }
             public static bool operator ==(NodePosition p1, NodePosition p2)
             {
-                if ((p1.x == p2.x) && (p1.y == p2.y)) return true;
-                return false;
+                return (p1.x == p2.x) && (p1.y == p2.y);
             }
             public static bool operator !=(NodePosition p1, NodePosition p2)
             {
-                if ((p1.x != p2.x) || (p1.y != p2.y)) return true;
-                return false;
+                return (p1.x != p2.x) || (p1.y != p2.y);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return base.Equals(obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
             }
         }
 

@@ -113,7 +113,6 @@ namespace MazeGenerate
             }
         }
 
-
         // 두번째 방법, 원점회귀 추적(Back-Tracking).
         public void BackTracking()
         {
@@ -193,11 +192,8 @@ namespace MazeGenerate
                     for (int x = 2; x < xRange; x += 4)
                     {
                         point.Censor(x, y);
-                        if (!list.Exists(p => p.Contains(point))) // 획정된 구역이 아닐 경우 새로 할당하기
-                        {
-                            list.Add(new HashSet<Point>());
-                            list[list.Count - 1].Add(point);
-                        }
+                        if (!list.Exists(p => p.Contains(point))) list.Add(new HashSet<Point>() { point });
+                        // 획정된 구역이 아닐 경우 새로 할당하기
                     }
 
                     // 획정된 구역을 무작위 합병
@@ -323,7 +319,7 @@ namespace MazeGenerate
             list.Clear();
         }
 
-        //다섯 번째 방법, 프림과 같이 분류되는 알고리즘 크루스칼(Kruskal)
+        // 다섯 번째 방법, 프림과 같이 분류되는 알고리즘 크루스칼(Kruskal)
         public void Kruskal()
         {
             Random rand = new Random();
