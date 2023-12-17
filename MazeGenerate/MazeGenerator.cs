@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace MazeGenerate
@@ -56,7 +57,7 @@ namespace MazeGenerate
         private struct Point
         {
             public int x, y;
-            public void Censor(int x, int y)
+            public Point(int x, int y)
             {
                 this.x = x; this.y = y;
             }
@@ -124,7 +125,7 @@ namespace MazeGenerate
             Point[] position = new Point[4];
             position[0].y = 2; position[1].x = 4;
 
-            p.Censor(x, y);
+            p = new Point(x, y);
             track.Push(p);
             do
             {
@@ -137,7 +138,7 @@ namespace MazeGenerate
 
                 if (unBlock.Count != 0)
                 {
-                    p.Censor(x, y);
+                    p = new Point(x, y);
                     int r = unBlock[rand.Next(unBlock.Count)];
                     if (r == 0)
                     {
@@ -173,7 +174,7 @@ namespace MazeGenerate
                     x = track.Peek().x;
                     y = track.Peek().y;
                 }
-                p.Censor(x, y);
+                p = new Point(x, y);
             } while (track.Count > 1);
         }
 
@@ -182,7 +183,6 @@ namespace MazeGenerate
         {
             List<HashSet<Point>> list = new List<HashSet<Point>>();
             Random rand = new Random();
-            Point point = new Point();
 
             for (int y = 1; y <= yRange - 1; y++)
             {
@@ -190,24 +190,19 @@ namespace MazeGenerate
                 {
                     // 홀수 행의 열들을 각각 획정
                     for (int x = 2; x < xRange; x += 4)
-                    {
-                        point.Censor(x, y);
-                        if (!list.Exists(p => p.Contains(point))) list.Add(new HashSet<Point>() { point });
                         // 획정된 구역이 아닐 경우 새로 할당하기
-                    }
+                        if (!list.Exists(p => p.Contains(new Point(x, y)))) list.Add(new HashSet<Point>() { new Point(x, y) });
+                    
 
                     // 획정된 구역을 무작위 합병
                     for (int x = 2; x < xRange - 3; x += 4)
                     {
-                        point.Censor(x, y);
-                        int presentIndex = list.FindIndex(a => a.Contains(point));
-
-                        point.Censor(x + 4, y);
-                        if (rand.Next(4) > 1 && !list[presentIndex].Contains(point))
+                        int presentIndex = list.FindIndex(i => i.Contains(new Point(x, y)));
+                        if (rand.Next(5) > 1 && !list[presentIndex].Contains(new Point(x + 4, y)))
                         {
                             map[x + 2, y] = Stage.Room;
                             map[x + 3, y] = Stage.Room;
-                            int nextIndex = list.FindIndex(s => s.Contains(point));
+                            int nextIndex = list.FindIndex(i => i.Contains(new Point(x + 4, y)));
                             if (rand.Next(2) == 1)
                             {
                                 list[presentIndex].UnionWith(list[nextIndex]);
@@ -226,12 +221,10 @@ namespace MazeGenerate
                     List<Point> unBlockList = new List<Point>();
                     for (int x = 2; x < xRange - 1; x += 4)
                     {
-                        point.Censor(x, y+1);
-                        unBlockList.Add(point);
+                        unBlockList.Add(new Point(x, y + 1));
                         if (map[x + 2, y - 1] != Stage.Room) // 해당 구역의 끝에 다다르는 조건
                         {
-                            point.Censor(x, y - 1);
-                            int presentIndex = list.FindIndex(i => i.Contains(point));
+                            int presentIndex = list.FindIndex(i => i.Contains(new Point(x, y - 1)));
                             int randCount = rand.Next(unBlockList.Count);
                             do
                             {
@@ -251,14 +244,12 @@ namespace MazeGenerate
             }
 
             //막 행 정리, 한 구역으로 통일
-            point.Censor(2, yRange - 1);
-            int r = list.FindIndex(i => i.Contains(point));
+            int r = list.FindIndex(i => i.Contains(new Point(2, yRange - 1)));
             for (int x = 2; x < xRange - 3; x += 4)
             {
-                point.Censor(x + 4, yRange - 1);
-                if (!list[r].Contains(point))
+                if (!list[r].Contains(new Point(x + 4, yRange - 1)))
                 {
-                    int nextIndex = list.FindIndex(index => index.Contains(point));
+                    int nextIndex = list.FindIndex(index => index.Contains(new Point(x + 4, yRange - 1)));
                     list[r].UnionWith(list[nextIndex]);
                     map[x + 2, yRange - 1] = Stage.Room;
                     map[x + 3, yRange - 1] = Stage.Room;
@@ -279,7 +270,7 @@ namespace MazeGenerate
 
             int x = rand.Next(1, (xRange - 1) / 4) * 4 - 2; // 일반항 x = 4*n - 2, 그러므로 가로축 방의 최대항은 N = (X + 2)/4
             int y = rand.Next(1, yRange / 2) * 2 - 1; // 일반항 y = 2*n - 1, 그러므로 세로축 방의 최대항은 N = (Y + 1)/2
-            p.Censor(x, y);
+            p = new Point(x, y);
             list.Add(p);
             do
             {
@@ -312,7 +303,7 @@ namespace MazeGenerate
                     map[x + 2, y] = Stage.Room;
                     map[x + 3, y] = Stage.Room;
                 }
-                p.Censor(x, y);
+                p = new Point(x, y);
                 list.Add(frontier.ElementAt(randIndex).Key);
                 frontier.Remove(frontier.ElementAt(randIndex).Key);
             } while (frontier.Count > 0);
@@ -323,21 +314,16 @@ namespace MazeGenerate
         public void Kruskal()
         {
             Random rand = new Random();
-            Point p = new Point();
+            Point p;
             List<List<Point>> list = new List<List<Point>>();
             HashSet<Point> closed = new HashSet<Point>();
             Point[] position = new Point[2];
             position[0].y = 2; position[1].x = 4;
 
             for (int y = 1; y < yRange; y += 2) // 미로의 놓인 모든 방을 리스트에 할당
-            {
                 for (int x = 2; x < xRange; x += 4)
-                {
-                    p.Censor(x, y);
-                    list.Add(new List<Point>());
-                    list[list.Count - 1].Add(p);
-                }
-            }
+                    list.Add(new List<Point>() { new Point(x,y)});
+                
 
             while (list.Count > 1) // 리스트가 하나만 남는 즉시 미로 제작 완료
             {
@@ -346,7 +332,7 @@ namespace MazeGenerate
                 int x = list[randIndexFirst][randIndexSecond].x, y = list[randIndexFirst][randIndexSecond].y;
                 while (true)
                 {
-                    p.Censor(x, y);
+                    p = new Point(x, y);
                     List<int> unBlock = new List<int>();
                     for (int i = 0; i < 4; i++) // 상하좌우 검사
                     {
@@ -406,22 +392,21 @@ namespace MazeGenerate
             HashSet<Point> visited = new HashSet<Point>();
             Random rand = new Random();
 
-            Point p = new Point();
+            Point p;
             Point[] position = new Point[2];
             position[0].y = 2; position[1].x = 4;
 
             bool isEnd = false;
             int x = rand.Next(1, (xRange - 1) / 4) * 4 - 2;
             int y = rand.Next(1, yRange / 2) * 2 - 1;
-            p.Censor(x, y);
-            list.Add(p);
+            list.Add(new Point(x, y));
 
             while (!isEnd)
             {
                 bool isRemainRoom = false;
                 while (true)
                 {
-                    p.Censor(x, y);
+                    p = new Point(x, y);
                     List<int> unBlock = new List<int>();
                     for (int i = 0; i < 4; i++) // 상하좌우 검사
                     {
@@ -468,7 +453,7 @@ namespace MazeGenerate
                 {
                     for (int xPos = 2; xPos <= xRange - 3; xPos += 4)
                     {
-                        p.Censor(xPos, yPos);
+                        p = new Point(xPos, yPos);
                         if (!visited.Contains(p))
                         {
                             List<byte> openWay = new List<byte>();
